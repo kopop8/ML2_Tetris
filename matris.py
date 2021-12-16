@@ -57,7 +57,7 @@ class Matris(object):
         self.set_tetrominoes()
         self.tetromino_rotation = 0
         self.downwards_timer = 0
-        self.base_downwards_speed = 0.4 # Move down every 400 ms
+        self.base_downwards_speed = 0.8 # Move down every 400 ms
 
         self.movement_keys = {'left': 0, 'right': 0}
         self.movement_keys_speed = 0.05
@@ -154,8 +154,7 @@ class Matris(object):
 
 
 
-        self.downwards_speed = self.base_downwards_speed ** (1 + self.level/10.)
-
+        self.downwards_speed = (0.8-((self.level-1)*0.007))**(self.level-1)
         self.downwards_timer += timepassed
         downwards_speed = self.downwards_speed*0.10 if any([pygame.key.get_pressed()[pygame.K_DOWN],
                                                             pygame.key.get_pressed()[pygame.K_s]]) else self.downwards_speed

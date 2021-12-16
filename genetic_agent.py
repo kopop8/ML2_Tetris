@@ -41,11 +41,11 @@ best_outputs = []
 num_generations = 1000
 for generation in range(num_generations):
     print("Generation : ", generation)
-    # Measuring the fitness of each chromosome in the population.
+    # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
     fitness = ga.cal_pop_fitness(equation_inputs, new_population)
     print("Fitness")
     print(fitness)
-
+    #
     best_outputs.append(np.max(np.sum(new_population*equation_inputs, axis=1)))
     # The best result in the current iteration.
     print("Best result : ", np.max(np.sum(new_population*equation_inputs, axis=1)))

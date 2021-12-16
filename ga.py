@@ -3,6 +3,11 @@ import numpy as np
 def cal_pop_fitness(equation_inputs, pop):
     # Calculating the fitness value of each solution in the current population.
     # The fitness function calulates the sum of products between each input and its corresponding weight.
+    # TODO hier moet de game gespeeld worden per POP.
+    # Per tetrominoe die valt moet elke mogelheid gecalculate worden.
+    # Met de huidige generatie
+    # Er moet ergens een predict komen en de actie met de hoogste score moet uitgevoerd worden totdat die af is.
+    # als die af is moet de score als fitness gereturned worden.
     fitness = np.sum(pop*equation_inputs, axis=1)
     return fitness
 

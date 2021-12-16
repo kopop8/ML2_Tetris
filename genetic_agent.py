@@ -12,6 +12,7 @@ The y=target is to maximize this equation ASAP:
 equation_inputs = [4,-2,3.5,5,-11,-4.7]
 
 # Number of the weights we are looking to optimize.
+# TODO num of states here
 num_weights = len(equation_inputs)
 
 """
@@ -42,13 +43,13 @@ num_generations = 1000
 for generation in range(num_generations):
     print("Generation : ", generation)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
-    fitness = ga.cal_pop_fitness(equation_inputs, new_population)
+    fitness = ga.cal_pop_fitness(new_population,generation)
     print("Fitness")
     print(fitness)
     #
-    best_outputs.append(np.max(np.sum(new_population*equation_inputs, axis=1)))
+    best_outputs.append(np.max(fitness))
     # The best result in the current iteration.
-    print("Best result : ", np.max(np.sum(new_population*equation_inputs, axis=1)))
+    print("Best result : ", np.max(fitness))
     
     # Selecting the best parents in the population for mating.
     parents = ga.select_mating_pool(new_population, fitness, 
@@ -73,7 +74,7 @@ for generation in range(num_generations):
     
 # Getting the best solution after iterating finishing all generations.
 #At first, the fitness is calculated for each solution in the final generation.
-fitness = ga.cal_pop_fitness(equation_inputs, new_population)
+fitness = ga.cal_pop_fitness(new_population,-1)
 # Then return the index of that solution corresponding to the best fitness.
 best_match_idx = np.where(fitness == np.max(fitness))
 

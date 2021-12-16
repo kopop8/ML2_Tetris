@@ -1,14 +1,15 @@
 import numpy as np
-
-def cal_pop_fitness(equation_inputs, pop):
+import matris
+import pygame
+matris.start_game()
+def cal_pop_fitness(pop, gen):
     # Calculating the fitness value of each solution in the current population.
     # The fitness function calulates the sum of products between each input and its corresponding weight.
-    # TODO hier moet de game gespeeld worden per POP.
-    # Per tetrominoe die valt moet elke mogelheid gecalculate worden.
-    # Met de huidige generatie
-    # Er moet ergens een predict komen en de actie met de hoogste score moet uitgevoerd worden totdat die af is.
-    # als die af is moet de score als fitness gereturned worden.
-    fitness = np.sum(pop*equation_inputs, axis=1)
+    fitness = []
+    for idx, user in enumerate(pop):
+        info = [gen,idx, len(pop)]
+        fitness.append(matris.start_round_GA(user, info))
+        print('fitness',fitness)
     return fitness
 
 def select_mating_pool(pop, fitness, num_parents):

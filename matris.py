@@ -38,6 +38,7 @@ TRICKY_CENTERX = WIDTH-(WIDTH-(MATRIS_OFFSET+BLOCKSIZE*MATRIX_WIDTH+BORDERWIDTH*
 
 VISIBLE_MATRIX_HEIGHT = MATRIX_HEIGHT - 2
 
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 class Matris(object):
     def __init__(self):
@@ -74,6 +75,7 @@ class Matris(object):
         self.combo = 1 # Combo will increase when you clear lines with several tetrominos in a row
         
         self.holes = 0
+        self.bumpiness = 0
 
         self.paused = False
 
@@ -85,6 +87,9 @@ class Matris(object):
         self.linescleared_sound = get_sound("linecleared.wav")
         self.highscorebeaten_sound = get_sound("highscorebeaten.wav")
 
+
+    def get_score(self):
+        return self.score
 
     def set_tetrominoes(self):
         """
@@ -101,7 +106,6 @@ class Matris(object):
     def get_next_tetromino(self):
         tetromino = self.bag.pop()
         if len(self.bag) == 0:
-            print('bag is empty')
             self.bag = random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
         return tetromino
     def hard_drop(self):
@@ -212,7 +216,7 @@ class Matris(object):
         if full_exit:
             exit()
         else:
-            Game().main(screen)
+            raise GameOver("Sucker!")
 
     def place_shadow(self):
         """
@@ -364,11 +368,11 @@ class Matris(object):
         self.holes = self.get_holes()
 
         if not self.blend():
-            self.gameover_sound.play()
-            self.gameover()
+            # self.gameover_sound.play()
+            return self.gameover()
             
         self.needs_redraw = True
-        print('bumpiness', self.get_bumpiness())
+        self.bumpiness = self.get_bumpiness()
     
     def get_holes(self):
         holes = 0
@@ -381,7 +385,7 @@ class Matris(object):
                 # above
                 if (idx[0]-1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]-1,idx[1]]:
                     item_around += 1
-                # below
+                # above
                 if (idx[0]+1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]+1,idx[1]]:
                     item_around += 1
                 # left
@@ -390,7 +394,7 @@ class Matris(object):
                 # right
                 if (idx[0],idx[1]+1) not in self.matrix.keys() or self.matrix[idx[0],idx[1]+1]:
                     item_around += 1
-                if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys():
+                if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys() and self.matrix[idx[0]-1,idx[1]]:
                     holes+=1
         return holes
 
@@ -485,13 +489,12 @@ class Matris(object):
 
 
 class Game(object):
-    def main(self, screen):
+    def main(self):
         """
         Main loop for game
         Redraws scores and next tetromino each time the loop is passed through
         """
         clock = pygame.time.Clock()
-
         self.matris = Matris()
         
         screen.blit(construct_nightmare(screen.get_size()), (0,0))
@@ -503,13 +506,12 @@ class Game(object):
         self.redraw()
 
         while True:
-            try:
-                timepassed = clock.tick(50)
-                if self.matris.update((timepassed / 1000.) if not self.matris.paused else 0):
-                    self.redraw()
-            except GameOver:
-                return
-      
+                try:
+                    timepassed = clock.tick(50)
+                    if self.matris.update((timepassed / 1000.) if not self.matris.paused else 0):
+                        self.redraw()
+                except GameOver:
+                    return True 
 
     def redraw(self):
         """
@@ -548,12 +550,14 @@ class Game(object):
         linessurf = renderpair("Lines", self.matris.lines)
         combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
         holessurf = renderpair("Holes", self.matris.holes)
+        bumpsurf = renderpair("Bumpiness", self.matris.bumpiness)
 
         height = 20 + (levelsurf.get_rect().height + 
                        scoresurf.get_rect().height +
                        linessurf.get_rect().height + 
                        combosurf.get_rect().height +
-                       holessurf.get_rect().height
+                       holessurf.get_rect().height +
+                       bumpsurf.get_rect().height
                        )
         
         #Colours side panel
@@ -567,6 +571,7 @@ class Game(object):
         area.blit(linessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height))
         area.blit(combosurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height))
         area.blit(holessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
+        area.blit(bumpsurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ bumpsurf.get_rect().height))
         screen.blit(area, area.get_rect(bottom=HEIGHT-MATRIS_OFFSET, centerx=TRICKY_CENTERX))
 
 
@@ -659,9 +664,111 @@ def construct_nightmare(size):
     return surf
 
 
-if __name__ == '__main__':
-    pygame.init()
+class GameGA(Game):
+    def main(self, user,info):
+        """
+        Main loop for game
+        Redraws scores and next tetromino each time the loop is passed through
+        """
+        print('Weights of this user:', user)
+        clock = pygame.time.Clock()
+        self.matris = Matris()
+        self.user = user
+        self.info = info
 
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        screen.blit(construct_nightmare(screen.get_size()), (0,0))
+        
+        matris_border = Surface((MATRIX_WIDTH*BLOCKSIZE+BORDERWIDTH*2, VISIBLE_MATRIX_HEIGHT*BLOCKSIZE+BORDERWIDTH*2))
+        matris_border.fill(BORDERCOLOR)
+        screen.blit(matris_border, (MATRIS_OFFSET,MATRIS_OFFSET))
+        
+        self.redraw()
+        while True:
+            try:
+            # TODO hier moet alles gebeuren met de agent.
+            # IPV update moeten hier alle mogelijke opties per blokje bekeken worden
+            # Daarna laat je de user een score predicten voor alle opties
+            # Je plaats het blokje bij de mogeljkheid met de hoogste score
+            # Dit moet geloopt worden totdat die af is.
+            # De rest wordt Al automatisch gedaan     
+                timepassed = clock.tick(50)
+                self.matris.hard_drop()
+                if self.matris.update((timepassed / 1000.) if not self.matris.paused else 0):
+                    self.redraw()
+            except GameOver:
+                return self.matris.get_score()
+
+    def blit_info(self):
+        """
+        Draws information panel
+        """
+        textcolor = (255, 255, 255)
+        font = pygame.font.Font(None, 20)
+        width = (WIDTH-(MATRIS_OFFSET+BLOCKSIZE*MATRIX_WIDTH+BORDERWIDTH*2)) - MATRIS_OFFSET*2
+
+        def renderpair(text, val):
+            text = font.render(text, True, textcolor)
+            val = font.render(str(val), True, textcolor)
+
+            surf = Surface((width, text.get_rect().height + BORDERWIDTH*2), pygame.SRCALPHA, 32)
+
+            surf.blit(text, text.get_rect(top=BORDERWIDTH+10, left=BORDERWIDTH+10))
+            surf.blit(val, val.get_rect(top=BORDERWIDTH+10, right=width-(BORDERWIDTH+10)))
+            return surf
+        
+        #Resizes side panel to allow for all information to be display there.
+        scoresurf = renderpair("Score", self.matris.score)
+        levelsurf = renderpair("Level", self.matris.level)
+        linessurf = renderpair("Lines", self.matris.lines)
+        combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
+        holessurf = renderpair("Holes", self.matris.holes)
+        bumpsurf = renderpair("Bumpiness", self.matris.bumpiness)
+        mutationsurf = renderpair("Info","Generation: {}, Mutation: {}/{}".format(self.info[0],self.info[1],self.info[2]))
+
+        height = 20 + (levelsurf.get_rect().height + 
+                    scoresurf.get_rect().height +
+                    linessurf.get_rect().height + 
+                    combosurf.get_rect().height +
+                    holessurf.get_rect().height +
+                    bumpsurf.get_rect().height +
+                    mutationsurf.get_rect().height
+                    )
+        
+        #Colours side panel
+        area = Surface((width, height))
+        area.fill(BORDERCOLOR)
+        area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, width-BORDERWIDTH*2, height-BORDERWIDTH*2))
+        
+        #Draws side panel
+        area.blit(levelsurf, (0,0))
+        area.blit(scoresurf, (0, levelsurf.get_rect().height))
+        area.blit(linessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height))
+        area.blit(combosurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height))
+        area.blit(holessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
+        area.blit(bumpsurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ bumpsurf.get_rect().height))
+        area.blit(mutationsurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ bumpsurf.get_rect().height+ bumpsurf.get_rect().height))
+        screen.blit(area, area.get_rect(bottom=HEIGHT-MATRIS_OFFSET, centerx=TRICKY_CENTERX))
+        
+
+
+
+
+def start_game():
+    pygame.init()
     pygame.display.set_caption("MaTris")
-    Menu().main(screen)
+
+
+def start_round():
+    Game().main()
+
+
+def start_round_GA(user,info):
+    return GameGA().main(user,info)
+  
+
+if __name__ == '__main__':
+    start_game()
+    start_round()
+
+
+

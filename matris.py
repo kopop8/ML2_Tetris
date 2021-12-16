@@ -58,7 +58,7 @@ class Matris(object):
         self.set_tetrominoes()
         self.tetromino_rotation = 0
         self.downwards_timer = 0
-        self.base_downwards_speed = 0.4 # Move down every 400 ms
+        self.base_downwards_speed = 0.8 # Move down every 400 ms
 
         self.movement_keys = {'left': 0, 'right': 0}
         self.movement_keys_speed = 0.05
@@ -70,6 +70,8 @@ class Matris(object):
 
         self.combo = 1 # Combo will increase when you clear lines with several tetrominos in a row
         
+        self.holes = 0
+
         self.paused = False
 
         self.highscore = load_score()
@@ -153,8 +155,7 @@ class Matris(object):
 
 
 
-        self.downwards_speed = self.base_downwards_speed ** (1 + self.level/10.)
-
+        self.downwards_speed = (0.8-((self.level-1)*0.007))**(self.level-1)
         self.downwards_timer += timepassed
         downwards_speed = self.downwards_speed*0.10 if any([pygame.key.get_pressed()[pygame.K_DOWN],
                                                             pygame.key.get_pressed()[pygame.K_s]]) else self.downwards_speed
@@ -352,13 +353,42 @@ class Matris(object):
 
         self.set_tetrominoes()
 
+        #Here calculate states?
+        self.holes = self.get_holes()
+
         if not self.blend():
             self.gameover_sound.play()
             self.gameover()
             
         self.needs_redraw = True
 
+<<<<<<< HEAD
         print('bumpiness', self.get_bumpiness())
+=======
+    def get_holes(self):
+        holes = 0
+        for item in self.matrix.items():
+            block = item[1]
+            idx = item[0]
+            # look items around
+            item_around = 0
+            if block is None:
+                # above
+                if (idx[0]-1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]-1,idx[1]]:
+                    item_around += 1
+                # below
+                if (idx[0]+1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]+1,idx[1]]:
+                    item_around += 1
+                # left
+                if (idx[0],idx[1]-1) not in self.matrix.keys() or self.matrix[idx[0],idx[1]-1]:
+                    item_around += 1
+                # right
+                if (idx[0],idx[1]+1) not in self.matrix.keys() or self.matrix[idx[0],idx[1]+1]:
+                    item_around += 1
+                if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys():
+                    holes+=1
+        return holes
+>>>>>>> main
 
     def remove_lines(self):
         """
@@ -513,11 +543,14 @@ class Game(object):
         levelsurf = renderpair("Level", self.matris.level)
         linessurf = renderpair("Lines", self.matris.lines)
         combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
+        holessurf = renderpair("Holes", self.matris.holes)
 
         height = 20 + (levelsurf.get_rect().height + 
                        scoresurf.get_rect().height +
                        linessurf.get_rect().height + 
-                       combosurf.get_rect().height )
+                       combosurf.get_rect().height +
+                       holessurf.get_rect().height
+                       )
         
         #Colours side panel
         area = Surface((width, height))
@@ -529,7 +562,7 @@ class Game(object):
         area.blit(scoresurf, (0, levelsurf.get_rect().height))
         area.blit(linessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height))
         area.blit(combosurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height))
-
+        area.blit(holessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
         screen.blit(area, area.get_rect(bottom=HEIGHT-MATRIS_OFFSET, centerx=TRICKY_CENTERX))
 
 

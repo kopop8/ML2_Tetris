@@ -4,6 +4,7 @@ from pygame import Rect, Surface
 import random
 import os
 import kezmenu
+import numpy as np
 
 from tetrominoes import list_of_tetrominoes
 from tetrominoes import rotate
@@ -357,6 +358,8 @@ class Matris(object):
             
         self.needs_redraw = True
 
+        print('bumpiness', self.get_bumpiness())
+
     def remove_lines(self):
         """
         Removes lines from the board
@@ -421,6 +424,31 @@ class Matris(object):
                 if shape[y][x]:
                     surf.blit(self.block(self.next_tetromino.color), (x*BLOCKSIZE, y*BLOCKSIZE))
         return surf
+
+    def get_bumpiness(self):
+        height_array = np.zeros(MATRIX_WIDTH)
+      
+        for row_idx in range(MATRIX_HEIGHT):
+            for col_idx in range(MATRIX_WIDTH):
+                if self.matrix[(row_idx, col_idx)] is not None:
+                    # If the MATRIX_HEIGHT - row_idx of a certain column is higher than the value in the height_array,
+                    # then replace the value. Reasoning for MATRIX_HEIGHT - row_idx is,
+                    # because in the matrix the bottom is 21 and runs back to 0 (0 = the top).
+                    # print("({},{}):".format(row_idx, col_idx), self.matrix[(row_idx, col_idx)])
+                    if height_array[col_idx] < MATRIX_HEIGHT - row_idx:
+                        height_array[col_idx] = MATRIX_HEIGHT - row_idx
+
+        bumpiness = 0
+
+        for idx, _ in enumerate(height_array):
+            if idx+1 < len(height_array)-1:
+                bumpiness += np.absolute(height_array[idx] - height_array[idx+1])
+
+
+        return bumpiness
+
+
+
 
 class Game(object):
     def main(self, screen):

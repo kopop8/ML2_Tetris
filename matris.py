@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 import pygame
 from pygame import Rect, Surface
@@ -208,11 +209,10 @@ class Matris(object):
         """
 
         write_score(self.score)
-        
         if full_exit:
             exit()
         else:
-            raise GameOver("Sucker!")
+            Game().main(screen)
 
     def place_shadow(self):
         """

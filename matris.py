@@ -459,7 +459,8 @@ class Matris(object):
                     surf.blit(self.block(self.next_tetromino.color), (x*BLOCKSIZE, y*BLOCKSIZE))
         return surf
 
-    def get_bumpiness(self):
+
+    def get_column_heights(self):
         height_array = np.zeros(MATRIX_WIDTH)
       
         for row_idx in range(MATRIX_HEIGHT):
@@ -472,14 +473,17 @@ class Matris(object):
                     if height_array[col_idx] < MATRIX_HEIGHT - row_idx:
                         height_array[col_idx] = MATRIX_HEIGHT - row_idx
 
+    def get_bumpiness(self):
+        height_array = self.get_column_heights()
         bumpiness = 0
 
         for idx, _ in enumerate(height_array):
             if idx+1 < len(height_array)-1:
                 bumpiness += np.absolute(height_array[idx] - height_array[idx+1])
-
-
         return bumpiness
+
+    def get_deepest_well(self):
+        pass
 
 
 

@@ -361,10 +361,8 @@ class Matris(object):
             self.gameover()
             
         self.needs_redraw = True
-
-<<<<<<< HEAD
         print('bumpiness', self.get_bumpiness())
-=======
+    
     def get_holes(self):
         holes = 0
         for item in self.matrix.items():
@@ -388,7 +386,6 @@ class Matris(object):
                 if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys():
                     holes+=1
         return holes
->>>>>>> main
 
     def remove_lines(self):
         """

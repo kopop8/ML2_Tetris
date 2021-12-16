@@ -5,7 +5,7 @@ import random
 import os
 import kezmenu
 
-from tetrominoes import list_of_tetrominoes
+from tetrominoes import Tetromino, list_of_tetrominoes
 from tetrominoes import rotate
 
 from scores import load_score, write_score
@@ -52,12 +52,12 @@ class Matris(object):
         falling tetromino is managed by `self.set_tetrominoes` instead. When the falling tetromino "dies",
         it will be placed in `self.matrix`.
         """
-
-        self.next_tetromino = random.choice(list_of_tetrominoes)
+        self.bag= random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
+        self.next_tetromino = self.get_next_tetromino()
         self.set_tetrominoes()
         self.tetromino_rotation = 0
         self.downwards_timer = 0
-        self.base_downwards_speed = 0.8 # Move down every 400 ms
+        self.base_downwards_speed = 0.8 # Move down every 800 ms
 
         self.movement_keys = {'left': 0, 'right': 0}
         self.movement_keys_speed = 0.05
@@ -66,6 +66,8 @@ class Matris(object):
         self.level = 1
         self.score = 0
         self.lines = 0
+
+
 
         self.combo = 1 # Combo will increase when you clear lines with several tetrominos in a row
         
@@ -87,14 +89,19 @@ class Matris(object):
         Sets information for the current and next tetrominos
         """
         self.current_tetromino = self.next_tetromino
-        self.next_tetromino = random.choice(list_of_tetrominoes)
+        self.next_tetromino = self.get_next_tetromino()
         self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
         self.tetromino_position = (0,4) if len(self.current_tetromino.shape) == 2 else (0, 3)
         self.tetromino_rotation = 0
         self.tetromino_block = self.block(self.current_tetromino.color)
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
 
-    
+    def get_next_tetromino(self):
+        tetromino = self.bag.pop()
+        if len(self.bag) == 0:
+            print('bag is empty')
+            self.bag = random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
+        return tetromino
     def hard_drop(self):
         """
         Instantly places tetrominos in the cells below
@@ -344,7 +351,7 @@ class Matris(object):
                     self.highscorebeaten_sound.play()
                 self.played_highscorebeaten_sound = True
 
-        if self.lines >= self.level*10:
+        if self.lines >= self.level*5:
             self.levelup_sound.play()
             self.level += 1
 

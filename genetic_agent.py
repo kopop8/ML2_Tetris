@@ -8,13 +8,10 @@ The y=target is to maximize this equation ASAP:
     What are the best values for the 6 weights w1 to w6?
     We are going to use the genetic algorithm for the best possible values after a number of generations.
 """
-# Inputs of the equation.
-# TODO states hier
-equation_inputs = [4,-2,3.5]
 
 # Number of the weights we are looking to optimize.
 # TODO num of states here
-num_weights = len(equation_inputs)
+num_weights = 3
 
 """
 Genetic algorithm parameters:

@@ -109,7 +109,7 @@ class Matris(object):
         if len(self.bag) == 0:
             self.bag = random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
         return tetromino
-    def hard_drop(self,actually_place= True):
+    def hard_drop(self,place_block= True):
         """
         Instantly places tetrominos in the cells below
         """
@@ -117,7 +117,7 @@ class Matris(object):
         while self.request_movement('down'):
             amount += 1
         self.score += 10*amount
-        if actually_place:
+        if place_block:
             self.lock_tetromino()
         else: 
             self.lock_tetromino_GA()
@@ -170,10 +170,11 @@ class Matris(object):
 
 
 
-        self.downwards_speed = (0.8-((self.level-1)*0.007))**(self.level-1)
+        self.downwards_speed = (0.8-((self.level-1)*0.007))**(self.level-1) /100
         self.downwards_timer += timepassed
         downwards_speed = self.downwards_speed*0.10 if any([pygame.key.get_pressed()[pygame.K_DOWN],
                                                             pygame.key.get_pressed()[pygame.K_s]]) else self.downwards_speed
+        
         if self.downwards_timer > downwards_speed:
             if not self.request_movement('down'): #Places tetromino if it cannot move further down
                 self.lock_tetromino()
@@ -383,25 +384,22 @@ class Matris(object):
         This method is called whenever the falling tetromino "dies". `self.matrix` is updated,
         the lines are counted and cleared, and a new tetromino is chosen.
         """
-        # block gets placed here?
         old = self.matrix
         self.matrix = self.blend()
 
         lines_cleared = self.check_lines()
         self.lines_cleared_last_move= lines_cleared
       
-        self.combo = self.combo + 1 if lines_cleared else 1
+        # Combo can be added again but its not official right not
+        # self.combo = self.combo + 1 if lines_cleared else 1
 
         self.set_current_tetromino(self.current_tetromino,self.next_tetromino)
 
-        #Here calculate states?
         self.holes = self.get_holes()
         self.bumpiness = self.get_bumpiness()
-        # if not self.blend():
-            # self.gameover_sound.play()
-            # return self.gameover()
+        self.lines_cleared_last_move= self.check_lines()
             
-        self.needs_redraw = True
+        self.needs_redraw = False
         self.matrix = old
 
     
@@ -416,7 +414,7 @@ class Matris(object):
                 # above
                 if (idx[0]-1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]-1,idx[1]]:
                     item_around += 1
-                # above
+                # below
                 if (idx[0]+1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]+1,idx[1]]:
                     item_around += 1
                 # left
@@ -532,8 +530,7 @@ class Matris(object):
         return bumpiness
 
 
-    def place_block(self, pos,rot,actually_place=True):
-        previous_matrix = self.matrix
+    def place_block(self, pos,rot,place_block=True):
         for _ in range(abs(rot)):
             self.request_rotation()
         if pos < 0:
@@ -542,8 +539,7 @@ class Matris(object):
         elif pos > 0:
             for _ in range(abs(pos)):
                 self.request_movement('right')
-        self.hard_drop(actually_place)
-        return previous_matrix
+        self.hard_drop(place_block)
     
     def set_matrix(self,matrix):
         self.matrix = matrix
@@ -565,7 +561,6 @@ class Matris(object):
     
     def get_state(self):
         return [self.bumpiness,self.holes,self.lines_cleared_last_move]
-
 
 
 class Game(object):
@@ -772,20 +767,17 @@ class GameGA(Game):
             # Dit moet geloopt worden totdat die af is.
             # De rest wordt Al automatisch gedaan
             #    
-                timepassed = clock.tick(500)
-                if self.matris.update((timepassed / 0.1) if not self.matris.paused else 0):
+                timepassed = clock.tick(50000)
+                if self.matris.update((timepassed / 000.1) if not self.matris.paused else 0):
                     scores = []
                     positions = []
                     rotations = [] 
                     # TODO place block. append the score. now reset the game and try a different combination for the block.
                     for pos in list(range(-5, 5)):
                         for rot in list(range(0, 4)):
-                            print(pos,rot)      
-                            curr_tetr, next_tetr = self.matris.get_current_tetromino()
-                            # FOR now just do random move
-                            # TODO EVERY POSSIBLE POSITION HERE / rotation here
+                            # TODO EVERY POSSIBLE POSITION 
                             pos = random.randint(-5,5)
-                            matrix = self.matris.place_block(pos,rot,False)
+                            self.matris.place_block(pos,rot,False)
                             state = self.matris.get_state()
                             scores.append((np.sum(state*user)))
                             positions.append(pos)

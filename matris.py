@@ -170,7 +170,7 @@ class Matris(object):
 
 
 
-        self.downwards_speed = (0.8-((self.level-1)*0.007))**(self.level-1) /100
+        self.downwards_speed = (0.8-((self.level-1)*0.007))**(self.level-1)
         self.downwards_timer += timepassed
         downwards_speed = self.downwards_speed*0.10 if any([pygame.key.get_pressed()[pygame.K_DOWN],
                                                             pygame.key.get_pressed()[pygame.K_s]]) else self.downwards_speed

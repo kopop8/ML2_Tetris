@@ -76,6 +76,7 @@ class Matris(object):
         
         self.holes = 0
         self.bumpiness = 0
+        self.lines_cleared_last_move = 0
 
         self.paused = False
 
@@ -108,7 +109,7 @@ class Matris(object):
         if len(self.bag) == 0:
             self.bag = random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
         return tetromino
-    def hard_drop(self):
+    def hard_drop(self,actually_place= True):
         """
         Instantly places tetrominos in the cells below
         """
@@ -116,8 +117,10 @@ class Matris(object):
         while self.request_movement('down'):
             amount += 1
         self.score += 10*amount
-
-        self.lock_tetromino()
+        if actually_place:
+            self.lock_tetromino()
+        else: 
+            self.lock_tetromino_GA()
 
 
     def update(self, timepassed):
@@ -344,6 +347,7 @@ class Matris(object):
         self.matrix = self.blend()
 
         lines_cleared = self.remove_lines()
+        self.lines_cleared_last_move= lines_cleared
         self.lines += lines_cleared
 
         if lines_cleared:
@@ -366,13 +370,40 @@ class Matris(object):
 
         #Here calculate states?
         self.holes = self.get_holes()
+        self.bumpiness = self.get_bumpiness()
 
         if not self.blend():
-            # self.gameover_sound.play()
             return self.gameover()
             
         self.needs_redraw = True
+
+
+    def lock_tetromino_GA(self):
+        """
+        This method is called whenever the falling tetromino "dies". `self.matrix` is updated,
+        the lines are counted and cleared, and a new tetromino is chosen.
+        """
+        # block gets placed here?
+        old = self.matrix
+        self.matrix = self.blend()
+
+        lines_cleared = self.check_lines()
+        self.lines_cleared_last_move= lines_cleared
+      
+        self.combo = self.combo + 1 if lines_cleared else 1
+
+        self.set_current_tetromino(self.current_tetromino,self.next_tetromino)
+
+        #Here calculate states?
+        self.holes = self.get_holes()
         self.bumpiness = self.get_bumpiness()
+        # if not self.blend():
+            # self.gameover_sound.play()
+            # return self.gameover()
+            
+        self.needs_redraw = True
+        self.matrix = old
+
     
     def get_holes(self):
         holes = 0
@@ -420,6 +451,21 @@ class Matris(object):
                 for x in range(MATRIX_WIDTH):
                     self.matrix[(y,x)] = self.matrix.get((y-1,x), None)
 
+        return len(lines)
+
+    def check_lines(self):
+        """
+        Removes lines from the board
+        """
+        lines = []
+        for y in range(MATRIX_HEIGHT):
+            #Checks if row if full, for each row
+            line = (y, [])
+            for x in range(MATRIX_WIDTH):
+                if self.matrix[(y,x)]:
+                    line[1].append(x)
+            if len(line[1]) == MATRIX_WIDTH:
+                lines.append(y)
         return len(lines)
 
     def blend(self, shape=None, position=None, matrix=None, shadow=False):
@@ -485,6 +531,40 @@ class Matris(object):
 
         return bumpiness
 
+
+    def place_block(self, pos,rot,actually_place=True):
+        previous_matrix = self.matrix
+        for _ in range(abs(rot)):
+            self.request_rotation()
+        if pos < 0:
+            for _ in range(abs(pos)):
+                self.request_movement('left')
+        elif pos > 0:
+            for _ in range(abs(pos)):
+                self.request_movement('right')
+        self.hard_drop(actually_place)
+        return previous_matrix
+    
+    def set_matrix(self,matrix):
+        self.matrix = matrix
+    
+    def get_current_tetromino(self):
+        return self.current_tetromino, self.next_tetromino
+        
+    def set_current_tetromino(self,curr,next):
+        """
+        Sets information for the current and next tetrominos
+        """
+        self.current_tetromino = curr
+        self.next_tetromino = next
+        self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
+        self.tetromino_position = (0,4) if len(self.current_tetromino.shape) == 2 else (0, 3)
+        self.tetromino_rotation = 0
+        self.tetromino_block = self.block(self.current_tetromino.color)
+        self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
+    
+    def get_state(self):
+        return [self.bumpiness,self.holes,self.lines_cleared_last_move]
 
 
 
@@ -690,10 +770,31 @@ class GameGA(Game):
             # Daarna laat je de user een score predicten voor alle opties
             # Je plaats het blokje bij de mogeljkheid met de hoogste score
             # Dit moet geloopt worden totdat die af is.
-            # De rest wordt Al automatisch gedaan     
-                timepassed = clock.tick(50)
-                self.matris.hard_drop()
-                if self.matris.update((timepassed / 1000.) if not self.matris.paused else 0):
+            # De rest wordt Al automatisch gedaan
+            #    
+                timepassed = clock.tick(500)
+                if self.matris.update((timepassed / 0.1) if not self.matris.paused else 0):
+                    scores = []
+                    positions = []
+                    rotations = [] 
+                    # TODO place block. append the score. now reset the game and try a different combination for the block.
+                    for pos in list(range(-5, 5)):
+                        for rot in list(range(0, 4)):
+                            print(pos,rot)      
+                            curr_tetr, next_tetr = self.matris.get_current_tetromino()
+                            # FOR now just do random move
+                            # TODO EVERY POSSIBLE POSITION HERE / rotation here
+                            pos = random.randint(-5,5)
+                            matrix = self.matris.place_block(pos,rot,False)
+                            state = self.matris.get_state()
+                            scores.append((np.sum(state*user)))
+                            positions.append(pos)
+                            rotations.append(rot)
+                    max_value = max(scores)
+                    max_index = scores.index(max_value)
+                    best_pos = positions[max_index]
+                    best_rot = rotations[max_index]
+                    self.matris.place_block(best_pos,best_rot,True)
                     self.redraw()
             except GameOver:
                 return self.matris.get_score()

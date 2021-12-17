@@ -1,3 +1,4 @@
+
 import numpy as np
 import ga
 """
@@ -9,7 +10,7 @@ The y=target is to maximize this equation ASAP:
 """
 # Inputs of the equation.
 # TODO states hier
-equation_inputs = [4,-2,3.5,5,-11,-4.7]
+equation_inputs = [4,-2,3.5]
 
 # Number of the weights we are looking to optimize.
 # TODO num of states here
@@ -39,7 +40,7 @@ new_population[5, :] = [-2,   3,   -7, 6,   3,    3]
 """
 
 best_outputs = []
-num_generations = 1000
+num_generations = 5
 for generation in range(num_generations):
     print("Generation : ", generation)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
@@ -78,8 +79,8 @@ fitness = ga.cal_pop_fitness(new_population,-1)
 # Then return the index of that solution corresponding to the best fitness.
 best_match_idx = np.where(fitness == np.max(fitness))
 
-print("Best solution : ", new_population[best_match_idx, :])
-print("Best solution fitness : ", fitness[best_match_idx])
+# print("Best solution : ", new_population[best_match_idx, :])
+# print("Best solution fitness : ", fitness[best_match_idx])
 
 
 import matplotlib.pyplot

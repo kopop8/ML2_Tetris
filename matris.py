@@ -368,7 +368,6 @@ class Matris(object):
             self.gameover()
             
         self.needs_redraw = True
-        print('bumpiness', self.get_bumpiness())
     
     def get_holes(self):
         holes = 0
@@ -473,6 +472,8 @@ class Matris(object):
                     if height_array[col_idx] < MATRIX_HEIGHT - row_idx:
                         height_array[col_idx] = MATRIX_HEIGHT - row_idx
 
+        return height_array
+
     def get_bumpiness(self):
         height_array = self.get_column_heights()
         bumpiness = 0
@@ -482,8 +483,66 @@ class Matris(object):
                 bumpiness += np.absolute(height_array[idx] - height_array[idx+1])
         return bumpiness
 
-    def get_deepest_well(self):
-        pass
+    def get_same_height_indices(self, start_idx, next_idx, origin_idx, values, column_heights):
+        if next_idx == len(column_heights): # This will give array out of bound index so here is an exit statement
+            # If at the end and the origin (where we started is not the end), then something is the same till the end
+            if start_idx != origin_idx:
+                values.append([origin_idx, start_idx])
+            else: 
+                # Last column is a pillar/well but has a different height than the one left of it
+                values.append([start_idx, start_idx])
+            return values
+        
+        if column_heights[start_idx] == column_heights[next_idx]:
+            # So this is forming a bottom
+            # Check if the next one is also the same
+            return self.get_same_height_indices(next_idx, next_idx+1, origin_idx, values, column_heights)
+        elif column_heights[start_idx] != column_heights[next_idx]:
+            # So if there now is height difference push the start_idx together with the orig_idx
+            values.append([origin_idx, start_idx])
+            return self.get_same_height_indices(next_idx, next_idx+1, next_idx, values, column_heights)
+
+        return values
+
+    def get_depth_of_wells(self, wells, column_heights):
+        res = []
+        for start_idx, end_idx in wells:
+            # Get the left and right height --> take the min
+            left_height = None
+            right_height = None
+            if start_idx == 0 and end_idx+1 < len(column_heights):
+                # left there is nothing to check so only check the right height diff
+                right_height = column_heights[end_idx+1]
+            elif end_idx+1 >= len(column_heights):
+                left_height = column_heights[start_idx-1]
+            else:
+                left_height = column_heights[start_idx-1]
+                right_height = column_heights[end_idx+1]
+
+            if left_height is None:
+                minimum = right_height
+            elif right_height is None:
+                minimum = left_height
+            else:
+                minimum = min(left_height, right_height)   
+
+            bottom_height = column_heights[start_idx]
+
+            height_difference = minimum - bottom_height
+
+            if height_difference > 0:
+                res.append([start_idx, end_idx, height_difference])
+            # else: 
+                # Means that we are currently on a pillar and not in a well
+
+        return res
+
+    def get_deepest_well(self, column_heights):
+        """Returns the first and last column index of the DEEPEST well"""
+        heights = self.get_same_height_indices(0, 1, 0, [], column_heights)
+        wells = self.get_depth_of_wells(heights, column_heights)
+        deepest_index = np.argmax([depth for start, end, depth in wells])
+        return wells[deepest_index][:-1]
 
 
 

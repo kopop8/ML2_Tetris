@@ -11,15 +11,15 @@ The y=target is to maximize this equation ASAP:
 
 # Number of the weights we are looking to optimize.
 # TODO num of states here
-num_weights = 3
+num_weights = 4
 
 """
 Genetic algorithm parameters:
     Mating pool size
     Population size
 """
-sol_per_pop = 8
-num_parents_mating = 4
+sol_per_pop = 12
+num_parents_mating = 2 # Was 4
 
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.

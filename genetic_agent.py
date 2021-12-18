@@ -17,8 +17,8 @@ Genetic algorithm parameters:
     Population size
 """
 # Number of the weights we are looking to optimize.
-num_weights = 8
-sol_per_pop = 12
+num_weights = 9
+sol_per_pop = 50
 num_parents_mating = 2 # Was 4
 
 # Defining the population size.
@@ -37,7 +37,7 @@ new_population[5, :] = [-2,   3,   -7, 6,   3,    3]
 """
 
 best_outputs = []
-num_generations = 5
+num_generations = 10
 for generation in range(num_generations):
     print("Generation : ", generation)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen

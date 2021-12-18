@@ -75,9 +75,12 @@ class Matris(object):
         self.combo = 1 # Combo will increase when you clear lines with several tetrominos in a row
         
         self.holes = 0
+        self.col_holes = 0
         self.bumpiness = 0
         self.lines_cleared_last_move = 0
         self.deepest_well = 0
+        self.row_transisions = 0
+        self.col_transisions = 0
         self.height = 0
         self.score_last = 0
         self.combo_last = 1
@@ -379,8 +382,10 @@ class Matris(object):
         #States
         column_heights = self.get_column_heights()
         self.num_pits = np.count_nonzero(column_heights==0)
+        self.row_transisions = self.get_row_transistions()
+        self.col_transisions = self.get_col_transistions()
         self.height = np.max(column_heights)
-        self.holes = self.get_holes()
+        self.holes, self.col_holes = self.get_holes()
         self.bumpiness = self.get_bumpiness(column_heights)
         self.deepest_well = self.get_deepest_well(column_heights)
 
@@ -413,7 +418,9 @@ class Matris(object):
         # States
         column_heights = self.get_column_heights()
         self.num_pits = np.count_nonzero(column_heights==0)
-        self.holes = self.get_holes()
+        self.holes, self.col_holes = self.get_holes()
+        self.row_transisions = self.get_row_transistions()
+        self.col_transisions = self.get_col_transistions()
         self.bumpiness = self.get_bumpiness(column_heights)
         self.deepest_well = self.get_deepest_well(column_heights)
         self.lines_cleared_last_move= lines_cleared
@@ -423,9 +430,35 @@ class Matris(object):
         self.matrix = old
         return old
 
+    def get_row_transistions(self):
+        trans = 0
+        for item in self.matrix.items():
+            block = item[1]
+            idx = item[0]
+            # left
+            if (idx[0],idx[1]-1) in self.matrix.keys() and not block and self.matrix[idx[0],idx[1]-1]:
+                trans += 1
+            # Right
+            if (idx[0],idx[1]+1) in self.matrix.keys() and not block and self.matrix[idx[0],idx[1]+1] :
+                trans +=1
+        return trans
     
+    def get_col_transistions(self):
+        trans = 0
+        for item in self.matrix.items():
+            block = item[1]
+            idx = item[0]
+            # above
+            if (idx[0]-1,idx[1]) in self.matrix.keys() and not block and self.matrix[idx[0]-1,idx[1]]:
+                trans += 1
+            # left
+            if (idx[0]+1,idx[1]) in self.matrix.keys() and not block and self.matrix[idx[0]+1,idx[1]] :
+                trans +=1
+        return trans
+
     def get_holes(self):
         holes = 0
+        col_with_holes = []
         for item in self.matrix.items():
             block = item[1]
             idx = item[0]
@@ -446,7 +479,8 @@ class Matris(object):
                     item_around += 1
                 if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys() and self.matrix[idx[0]-1,idx[1]]:
                     holes+=1
-        return holes
+                    col_with_holes.append(idx)
+        return holes, len(set(col_with_holes))
 
     def remove_lines(self):
         """
@@ -644,8 +678,8 @@ class Matris(object):
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
     
     def get_state(self):
-        return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.combo_last, self.score_last, self.num_pits]
-        # return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.num_pits]
+        # return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.combo_last, self.score_last, self.num_pits]
+        return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.num_pits, self.row_transisions, self.col_transisions, self.col_holes]
 
 
 class Game(object):
@@ -910,8 +944,9 @@ class GameGA(Game):
         levelsurf = renderpair("Level", self.matris.level)
         linessurf = renderpair("Lines", self.matris.lines)
         combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
-        holessurf = renderpair("Info", ' Holes: {}, Bumpiness: {}, Pits: {}'.format(self.matris.holes,self.matris.bumpiness,self.matris.num_pits))
-        wellsurf = renderpair("", 'Deepest Well: {}, Height: {}'.format(self.matris.deepest_well,self.matris.height))
+        holessurf = renderpair("Info", ' Holes: {}, Col_Holes: {}, Bumpiness: {}'.format(self.matris.holes,self.matris.col_holes,self.matris.bumpiness))
+        wellsurf = renderpair("", ' Pits: {}, Deepest Well: {}, Height: {}'.format(self.matris.num_pits, self.matris.deepest_well,self.matris.height,self.matris.row_transisions, self.matris.col_transisions))
+        infosurf = renderpair("",  'rol_trans: {}, col_trans: {}'.format(self.matris.row_transisions, self.matris.col_transisions))
         mutationsurf = renderpair("Info","Generation: {}/{}, Mutation: {}/{}".format(self.info[0],self.info[1],self.info[2],self.info[3]))
 
         height = 20 + (levelsurf.get_rect().height + 
@@ -920,6 +955,7 @@ class GameGA(Game):
                     combosurf.get_rect().height +
                     holessurf.get_rect().height +
                     wellsurf.get_rect().height+
+                    infosurf.get_rect().height+
                     mutationsurf.get_rect().height
                     )
         
@@ -935,7 +971,8 @@ class GameGA(Game):
         area.blit(combosurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height))
         area.blit(holessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
         area.blit(wellsurf, (0,  levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ wellsurf.get_rect().height))
-        area.blit(mutationsurf, (0,mutationsurf.get_rect().height + wellsurf.get_rect().height + levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
+        area.blit(infosurf, (0,  levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ wellsurf.get_rect().height+  infosurf.get_rect().height))
+        area.blit(mutationsurf, (0, infosurf.get_rect().height+ mutationsurf.get_rect().height + wellsurf.get_rect().height + levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
         screen.blit(area, area.get_rect(bottom=HEIGHT-MATRIS_OFFSET, centerx=TRICKY_CENTERX))
         
 

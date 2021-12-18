@@ -17,7 +17,7 @@ Genetic algorithm parameters:
     Population size
 """
 # Number of the weights we are looking to optimize.
-num_weights = 5
+num_weights = 6
 sol_per_pop = 12
 num_parents_mating = 2 # Was 4
 

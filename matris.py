@@ -537,7 +537,6 @@ class Matris(object):
                     # If the MATRIX_HEIGHT - row_idx of a certain column is higher than the value in the height_array,
                     # then replace the value. Reasoning for MATRIX_HEIGHT - row_idx is,
                     # because in the matrix the bottom is 21 and runs back to 0 (0 = the top).
-                    # print("({},{}):".format(row_idx, col_idx), self.matrix[(row_idx, col_idx)])
                     if height_array[col_idx] < MATRIX_HEIGHT - row_idx:
                         height_array[col_idx] = MATRIX_HEIGHT - row_idx
 
@@ -823,7 +822,6 @@ class GameGA(Game):
         Main loop for game
         Redraws scores and next tetromino each time the loop is passed through
         """
-        # print('Weights of this user:', user)
         clock = pygame.time.Clock()
         self.matris = Matris()
         self.user = user
@@ -838,26 +836,55 @@ class GameGA(Game):
         self.redraw()
         while True:
             try:   
-                timepassed = clock.tick(50000)
-                if self.matris.update((timepassed / 000.1) if not self.matris.paused else 0):
-                    scores = []
-                    positions = []
-                    rotations = [] 
-                    for pos in list(range(-5, 5)):
-                        for rot in list(range(0, 4)):
-                            self.matris.place_block(pos,rot,False)
-                            state = self.matris.get_state()
-                            scores.append((np.sum(state*user)))
-                            positions.append(pos)
-                            rotations.append(rot)
-                    max_value = max(scores)
-                    max_index = scores.index(max_value)
-                    best_pos = positions[max_index]
-                    best_rot = rotations[max_index]
-                    self.matris.place_block(best_pos,best_rot,True)
-                    self.redraw()
+                self.matris.update(9999999999999)
+                scores = []
+                positions = []
+                rotations = []
+                curr, next = self.matris.get_current_tetromino()
+                pos_left, pos_right = self.get_possible_pos(curr)
+                rot_range = self.get_possible_rot(curr)
+                for rot in rot_range:
+                    for pos in range(pos_left,pos_right+1):
+                        self.matris.place_block(pos,rot,False)
+                        state = self.matris.get_state()
+                        scores.append((np.sum(state*user)))
+                        positions.append(pos)
+                        rotations.append(rot)
+                max_value = max(scores)
+                max_index = scores.index(max_value)
+                best_pos = positions[max_index]
+                best_rot = rotations[max_index]
+                self.matris.place_block(best_pos,best_rot,True)
+                self.redraw()
             except GameOver:
                 return self.matris.get_score()
+
+    def get_possible_pos(self, tetr):
+        color = tetr.color
+        # Z and S
+        if color == 'red' or  color == 'green':
+            return  -4,5
+        # 0
+        if color == 'yellow':
+            return -4, 4
+        # I
+        if color == 'blue':
+            return -5, 4
+        #  L and J and T
+        return -4, 5
+
+    def get_possible_rot(self, tetr):
+        color = tetr.color
+        # Z and S and I
+        if color == 'red' or  color == 'green' or color == 'blue':
+            return [0,1]
+        if color == 'yellow':
+            return [0]
+        # L, J
+        if color == 'cyan' or color == 'orange':
+            return [0,1,2]
+        #  T
+        return [0,1,2,3]
 
     def blit_info(self):
         """
@@ -884,7 +911,7 @@ class GameGA(Game):
         combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
         holessurf = renderpair("Info", ' Holes: {}, Bumpiness: {}, Pits: {}'.format(self.matris.holes,self.matris.bumpiness,self.matris.num_pits))
         wellsurf = renderpair("", 'Deepest Well: {}, Height: {}'.format(self.matris.deepest_well,self.matris.height))
-        mutationsurf = renderpair("Info","Generation: {}, Mutation: {}/{}".format(self.info[0]+1,self.info[1]+1,self.info[2]))
+        mutationsurf = renderpair("Info","Generation: {}/{}, Mutation: {}/{}".format(self.info[0],self.info[1],self.info[2],self.info[3]))
 
         height = 20 + (levelsurf.get_rect().height + 
                     scoresurf.get_rect().height +

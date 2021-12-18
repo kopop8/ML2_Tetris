@@ -2,12 +2,12 @@ import numpy as np
 import matris
 import pygame
 matris.start_game()
-def cal_pop_fitness(pop, gen):
+def cal_pop_fitness(pop,  gen, num_gen):
     # Calculating the fitness value of each solution in the current population.
     # The fitness function calulates the sum of products between each input and its corresponding weight.
     fitness = []
     for idx, user in enumerate(pop):
-        info = [gen,idx, len(pop)]
+        info = [gen+1,num_gen,idx+1, len(pop)]
         fitness.append(matris.start_round_GA(user, info))
         print('fitness',fitness)
     return fitness

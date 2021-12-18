@@ -41,7 +41,7 @@ num_generations = 5
 for generation in range(num_generations):
     print("Generation : ", generation)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
-    fitness = ga.cal_pop_fitness(new_population,generation)
+    fitness = ga.cal_pop_fitness(new_population,generation, num_generations)
     print("Fitness")
     print(fitness)
     #

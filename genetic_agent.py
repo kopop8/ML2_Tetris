@@ -9,15 +9,15 @@ The y=target is to maximize this equation ASAP:
     We are going to use the genetic algorithm for the best possible values after a number of generations.
 """
 
-# Number of the weights we are looking to optimize.
-# TODO num of states here
-num_weights = 8
+
 
 """
 Genetic algorithm parameters:
     Mating pool size
     Population size
 """
+# Number of the weights we are looking to optimize.
+num_weights = 5
 sol_per_pop = 12
 num_parents_mating = 2 # Was 4
 
@@ -52,19 +52,19 @@ for generation in range(num_generations):
     # Selecting the best parents in the population for mating.
     parents = ga.select_mating_pool(new_population, fitness, 
                                       num_parents_mating)
-    print("Parents")
-    print(parents)
+    # print("Parents")
+    # print(parents)
 
     # Generating next generation using crossover.
     offspring_crossover = ga.crossover(parents,
                                        offspring_size=(pop_size[0]-parents.shape[0], num_weights))
-    print("Crossover")
-    print(offspring_crossover)
+    # print("Crossover")
+    # print(offspring_crossover)
 
     # Adding some variations to the offspring using mutation.
     offspring_mutation = ga.mutation(offspring_crossover, num_mutations=2)
-    print("Mutation")
-    print(offspring_mutation)
+    # print("Mutation")
+    # print(offspring_mutation)
 
     # Creating the new population based on the parents and offspring.
     new_population[0:parents.shape[0], :] = parents
@@ -72,12 +72,12 @@ for generation in range(num_generations):
     
 # Getting the best solution after iterating finishing all generations.
 #At first, the fitness is calculated for each solution in the final generation.
-fitness = ga.cal_pop_fitness(new_population,-1)
+fitness = ga.cal_pop_fitness(new_population,-1,0)
 # Then return the index of that solution corresponding to the best fitness.
 best_match_idx = np.where(fitness == np.max(fitness))
 
 # print("Best solution : ", new_population[best_match_idx, :])
-# print("Best solution fitness : ", fitness[best_match_idx])
+print("Best solution fitness : ", fitness[best_match_idx])
 
 
 import matplotlib.pyplot

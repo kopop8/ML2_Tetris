@@ -9,7 +9,6 @@ def cal_pop_fitness(pop,  gen, num_gen):
     for idx, user in enumerate(pop):
         info = [gen+1,num_gen,idx+1, len(pop)]
         fitness.append(matris.start_round_GA(user, info))
-        print('fitness',fitness)
     return fitness
 
 def select_mating_pool(pop, fitness, num_parents):

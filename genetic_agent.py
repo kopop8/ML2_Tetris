@@ -11,7 +11,7 @@ The y=target is to maximize this equation ASAP:
 
 # Number of the weights we are looking to optimize.
 # TODO num of states here
-num_weights = 4
+num_weights = 8
 
 """
 Genetic algorithm parameters:

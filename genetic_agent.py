@@ -17,29 +17,21 @@ Genetic algorithm parameters:
     Population size
 """
 # Number of the weights we are looking to optimize.
+
+
+#Creating the initial population.
 num_weights = 9
 sol_per_pop = 50
 num_parents_mating = 2 # Was 4
 
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
-#Creating the initial population.
 new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
-print(new_population)
-
-"""
-new_population[0, :] = [2.4,  0.7, 8, -2,   5,   1.1]
-new_population[1, :] = [-0.4, 2.7, 5, -1,   7,   0.1]
-new_population[2, :] = [-1,   2,   2, -3,   2,   0.9]
-new_population[3, :] = [4,    7,   12, 6.1, 1.4, -4]
-new_population[4, :] = [3.1,  4,   0,  2.4, 4.8,  0]
-new_population[5, :] = [-2,   3,   -7, 6,   3,    3]
-"""
-
+print("Beginning training")
 best_outputs = []
 num_generations = 10
 for generation in range(num_generations):
-    print("Generation : ", generation)
+    print("Generation : ", generation+1)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
     fitness = ga.cal_pop_fitness(new_population,generation, num_generations)
     print("Fitness")
@@ -47,7 +39,7 @@ for generation in range(num_generations):
     #
     best_outputs.append(np.max(fitness))
     # The best result in the current iteration.
-    print("Best result : ", np.max(fitness))
+    print("Best result : {}, Average : {}".format( np.max(fitness),np.average(fitness)))
     
     # Selecting the best parents in the population for mating.
     parents = ga.select_mating_pool(new_population, fitness, 
@@ -75,8 +67,8 @@ for generation in range(num_generations):
 fitness = ga.cal_pop_fitness(new_population,-1,0)
 # Then return the index of that solution corresponding to the best fitness.
 best_match_idx = np.where(fitness == np.max(fitness))
-
-# print("Best solution : ", new_population[best_match_idx, :])
+print(new_population)
+print("Best solution : ", new_population[best_match_idx, :])
 # print("Best solution fitness : ", fitness[best_match_idx])
 
 

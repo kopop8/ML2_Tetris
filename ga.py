@@ -25,7 +25,6 @@ def crossover(parents, offspring_size):
     offspring = np.empty(offspring_size)
     # The point at which crossover takes place between two parents. Usually, it is at the center.
     crossover_point = np.uint8(offspring_size[1]/2)
-
     for k in range(offspring_size[0]):
         # Index of the first parent to mate.
         parent1_idx = k%parents.shape[0]

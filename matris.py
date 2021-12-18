@@ -108,7 +108,7 @@ class Matris(object):
         self.tetromino_rotation = 0
         self.tetromino_block = self.block(self.current_tetromino.color)
         # Disable shadow for now
-        self.shadow_block = self.block(self.current_tetromino.color, shadow=False)
+        self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
 
     def get_next_tetromino(self):
         tetromino = self.bag.pop()
@@ -645,7 +645,7 @@ class Matris(object):
     
     def get_state(self):
         # return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.combo_last, self.score_last, self.num_pits]
-        return [self.bumpiness,self.holes,self.lines_cleared_last_move,self.height, self.num_pits]
+        return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.num_pits]
 
 
 class Game(object):

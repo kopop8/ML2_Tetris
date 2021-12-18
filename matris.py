@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 import pygame
 from pygame import Rect, Surface
@@ -37,6 +38,7 @@ TRICKY_CENTERX = WIDTH-(WIDTH-(MATRIS_OFFSET+BLOCKSIZE*MATRIX_WIDTH+BORDERWIDTH*
 
 VISIBLE_MATRIX_HEIGHT = MATRIX_HEIGHT - 2
 
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 class Matris(object):
     def __init__(self):
@@ -73,6 +75,8 @@ class Matris(object):
         self.combo = 1 # Combo will increase when you clear lines with several tetrominos in a row
         
         self.holes = 0
+        self.bumpiness = 0
+        self.lines_cleared_last_move = 0
 
         self.paused = False
 
@@ -84,6 +88,9 @@ class Matris(object):
         self.linescleared_sound = get_sound("linecleared.wav")
         self.highscorebeaten_sound = get_sound("highscorebeaten.wav")
 
+
+    def get_score(self):
+        return self.score
 
     def set_tetrominoes(self):
         """
@@ -100,10 +107,9 @@ class Matris(object):
     def get_next_tetromino(self):
         tetromino = self.bag.pop()
         if len(self.bag) == 0:
-            print('bag is empty')
             self.bag = random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
         return tetromino
-    def hard_drop(self):
+    def hard_drop(self,place_block= True):
         """
         Instantly places tetrominos in the cells below
         """
@@ -111,8 +117,10 @@ class Matris(object):
         while self.request_movement('down'):
             amount += 1
         self.score += 10*amount
-
-        self.lock_tetromino()
+        if place_block:
+            self.lock_tetromino()
+        else: 
+            self.lock_tetromino_GA()
 
 
     def update(self, timepassed):
@@ -166,6 +174,7 @@ class Matris(object):
         self.downwards_timer += timepassed
         downwards_speed = self.downwards_speed*0.10 if any([pygame.key.get_pressed()[pygame.K_DOWN],
                                                             pygame.key.get_pressed()[pygame.K_s]]) else self.downwards_speed
+        
         if self.downwards_timer > downwards_speed:
             if not self.request_movement('down'): #Places tetromino if it cannot move further down
                 self.lock_tetromino()
@@ -208,7 +217,6 @@ class Matris(object):
         """
 
         write_score(self.score)
-        
         if full_exit:
             exit()
         else:
@@ -340,6 +348,7 @@ class Matris(object):
         self.matrix = self.blend()
 
         lines_cleared = self.remove_lines()
+        self.lines_cleared_last_move= lines_cleared
         self.lines += lines_cleared
 
         if lines_cleared:
@@ -362,12 +371,36 @@ class Matris(object):
 
         #Here calculate states?
         self.holes = self.get_holes()
+        self.bumpiness = self.get_bumpiness()
 
         if not self.blend():
-            self.gameover_sound.play()
-            self.gameover()
+            return self.gameover()
             
         self.needs_redraw = True
+
+    def lock_tetromino_GA(self):
+        """
+        This method is called whenever the falling tetromino "dies". `self.matrix` is updated,
+        the lines are counted and cleared, and a new tetromino is chosen.
+        """
+        old = self.matrix
+        self.matrix = self.blend()
+
+        lines_cleared = self.check_lines()
+        self.lines_cleared_last_move= lines_cleared
+      
+        # Combo can be added again but its not official right not
+        # self.combo = self.combo + 1 if lines_cleared else 1
+
+        self.set_current_tetromino(self.current_tetromino,self.next_tetromino)
+
+        self.holes = self.get_holes()
+        self.bumpiness = self.get_bumpiness()
+        self.lines_cleared_last_move= self.check_lines()
+            
+        self.needs_redraw = False
+        self.matrix = old
+
     
     def get_holes(self):
         holes = 0
@@ -389,7 +422,7 @@ class Matris(object):
                 # right
                 if (idx[0],idx[1]+1) not in self.matrix.keys() or self.matrix[idx[0],idx[1]+1]:
                     item_around += 1
-                if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys():
+                if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys() and self.matrix[idx[0]-1,idx[1]]:
                     holes+=1
         return holes
 
@@ -415,6 +448,21 @@ class Matris(object):
                 for x in range(MATRIX_WIDTH):
                     self.matrix[(y,x)] = self.matrix.get((y-1,x), None)
 
+        return len(lines)
+
+    def check_lines(self):
+        """
+        Removes lines from the board
+        """
+        lines = []
+        for y in range(MATRIX_HEIGHT):
+            #Checks if row if full, for each row
+            line = (y, [])
+            for x in range(MATRIX_WIDTH):
+                if self.matrix[(y,x)]:
+                    line[1].append(x)
+            if len(line[1]) == MATRIX_WIDTH:
+                lines.append(y)
         return len(lines)
 
     def blend(self, shape=None, position=None, matrix=None, shadow=False):
@@ -545,16 +593,46 @@ class Matris(object):
         return wells[deepest_index][:-1]
 
 
+    def place_block(self, pos,rot,place_block=True):
+        for _ in range(abs(rot)):
+            self.request_rotation()
+        if pos < 0:
+            for _ in range(abs(pos)):
+                self.request_movement('left')
+        elif pos > 0:
+            for _ in range(abs(pos)):
+                self.request_movement('right')
+        self.hard_drop(place_block)
+    
+    def set_matrix(self,matrix):
+        self.matrix = matrix
+    
+    def get_current_tetromino(self):
+        return self.current_tetromino, self.next_tetromino
+        
+    def set_current_tetromino(self,curr,next):
+        """
+        Sets information for the current and next tetrominos
+        """
+        self.current_tetromino = curr
+        self.next_tetromino = next
+        self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
+        self.tetromino_position = (0,4) if len(self.current_tetromino.shape) == 2 else (0, 3)
+        self.tetromino_rotation = 0
+        self.tetromino_block = self.block(self.current_tetromino.color)
+        self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
+    
+    def get_state(self):
+        return [self.bumpiness,self.holes,self.lines_cleared_last_move]
 
 
 class Game(object):
-    def main(self, screen):
+    def main(self):
         """
         Main loop for game
         Redraws scores and next tetromino each time the loop is passed through
         """
         clock = pygame.time.Clock()
-
         self.matris = Matris()
         
         screen.blit(construct_nightmare(screen.get_size()), (0,0))
@@ -566,13 +644,12 @@ class Game(object):
         self.redraw()
 
         while True:
-            try:
-                timepassed = clock.tick(50)
-                if self.matris.update((timepassed / 1000.) if not self.matris.paused else 0):
-                    self.redraw()
-            except GameOver:
-                return
-      
+                try:
+                    timepassed = clock.tick(50)
+                    if self.matris.update((timepassed / 1000.) if not self.matris.paused else 0):
+                        self.redraw()
+                except GameOver:
+                    return True 
 
     def redraw(self):
         """
@@ -611,12 +688,14 @@ class Game(object):
         linessurf = renderpair("Lines", self.matris.lines)
         combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
         holessurf = renderpair("Holes", self.matris.holes)
+        bumpsurf = renderpair("Bumpiness", self.matris.bumpiness)
 
         height = 20 + (levelsurf.get_rect().height + 
                        scoresurf.get_rect().height +
                        linessurf.get_rect().height + 
                        combosurf.get_rect().height +
-                       holessurf.get_rect().height
+                       holessurf.get_rect().height +
+                       bumpsurf.get_rect().height
                        )
         
         #Colours side panel
@@ -630,6 +709,7 @@ class Game(object):
         area.blit(linessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height))
         area.blit(combosurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height))
         area.blit(holessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
+        area.blit(bumpsurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ bumpsurf.get_rect().height))
         screen.blit(area, area.get_rect(bottom=HEIGHT-MATRIS_OFFSET, centerx=TRICKY_CENTERX))
 
 
@@ -722,9 +802,129 @@ def construct_nightmare(size):
     return surf
 
 
-if __name__ == '__main__':
-    pygame.init()
+class GameGA(Game):
+    def main(self, user,info):
+        """
+        Main loop for game
+        Redraws scores and next tetromino each time the loop is passed through
+        """
+        print('Weights of this user:', user)
+        clock = pygame.time.Clock()
+        self.matris = Matris()
+        self.user = user
+        self.info = info
 
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        screen.blit(construct_nightmare(screen.get_size()), (0,0))
+        
+        matris_border = Surface((MATRIX_WIDTH*BLOCKSIZE+BORDERWIDTH*2, VISIBLE_MATRIX_HEIGHT*BLOCKSIZE+BORDERWIDTH*2))
+        matris_border.fill(BORDERCOLOR)
+        screen.blit(matris_border, (MATRIS_OFFSET,MATRIS_OFFSET))
+        
+        self.redraw()
+        while True:
+            try:
+            # TODO hier moet alles gebeuren met de agent.
+            # IPV update moeten hier alle mogelijke opties per blokje bekeken worden
+            # Daarna laat je de user een score predicten voor alle opties
+            # Je plaats het blokje bij de mogeljkheid met de hoogste score
+            # Dit moet geloopt worden totdat die af is.
+            # De rest wordt Al automatisch gedaan
+            #    
+                timepassed = clock.tick(50000)
+                if self.matris.update((timepassed / 000.1) if not self.matris.paused else 0):
+                    scores = []
+                    positions = []
+                    rotations = [] 
+                    # TODO place block. append the score. now reset the game and try a different combination for the block.
+                    for pos in list(range(-5, 5)):
+                        for rot in list(range(0, 4)):
+                            # TODO EVERY POSSIBLE POSITION 
+                            pos = random.randint(-5,5)
+                            self.matris.place_block(pos,rot,False)
+                            state = self.matris.get_state()
+                            scores.append((np.sum(state*user)))
+                            positions.append(pos)
+                            rotations.append(rot)
+                    max_value = max(scores)
+                    max_index = scores.index(max_value)
+                    best_pos = positions[max_index]
+                    best_rot = rotations[max_index]
+                    self.matris.place_block(best_pos,best_rot,True)
+                    self.redraw()
+            except GameOver:
+                return self.matris.get_score()
+
+    def blit_info(self):
+        """
+        Draws information panel
+        """
+        textcolor = (255, 255, 255)
+        font = pygame.font.Font(None, 20)
+        width = (WIDTH-(MATRIS_OFFSET+BLOCKSIZE*MATRIX_WIDTH+BORDERWIDTH*2)) - MATRIS_OFFSET*2
+
+        def renderpair(text, val):
+            text = font.render(text, True, textcolor)
+            val = font.render(str(val), True, textcolor)
+
+            surf = Surface((width, text.get_rect().height + BORDERWIDTH*2), pygame.SRCALPHA, 32)
+
+            surf.blit(text, text.get_rect(top=BORDERWIDTH+10, left=BORDERWIDTH+10))
+            surf.blit(val, val.get_rect(top=BORDERWIDTH+10, right=width-(BORDERWIDTH+10)))
+            return surf
+        
+        #Resizes side panel to allow for all information to be display there.
+        scoresurf = renderpair("Score", self.matris.score)
+        levelsurf = renderpair("Level", self.matris.level)
+        linessurf = renderpair("Lines", self.matris.lines)
+        combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
+        holessurf = renderpair("Holes", self.matris.holes)
+        bumpsurf = renderpair("Bumpiness", self.matris.bumpiness)
+        mutationsurf = renderpair("Info","Generation: {}, Mutation: {}/{}".format(self.info[0],self.info[1],self.info[2]))
+
+        height = 20 + (levelsurf.get_rect().height + 
+                    scoresurf.get_rect().height +
+                    linessurf.get_rect().height + 
+                    combosurf.get_rect().height +
+                    holessurf.get_rect().height +
+                    bumpsurf.get_rect().height +
+                    mutationsurf.get_rect().height
+                    )
+        
+        #Colours side panel
+        area = Surface((width, height))
+        area.fill(BORDERCOLOR)
+        area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, width-BORDERWIDTH*2, height-BORDERWIDTH*2))
+        
+        #Draws side panel
+        area.blit(levelsurf, (0,0))
+        area.blit(scoresurf, (0, levelsurf.get_rect().height))
+        area.blit(linessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height))
+        area.blit(combosurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height))
+        area.blit(holessurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height))
+        area.blit(bumpsurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ bumpsurf.get_rect().height))
+        area.blit(mutationsurf, (0, levelsurf.get_rect().height + scoresurf.get_rect().height + linessurf.get_rect().height +holessurf.get_rect().height+ bumpsurf.get_rect().height+ bumpsurf.get_rect().height))
+        screen.blit(area, area.get_rect(bottom=HEIGHT-MATRIS_OFFSET, centerx=TRICKY_CENTERX))
+        
+
+
+
+
+def start_game():
+    pygame.init()
     pygame.display.set_caption("MaTris")
-    Menu().main(screen)
+
+
+def start_round():
+    Game().main()
+
+
+def start_round_GA(user,info):
+    return GameGA().main(user,info)
+  
+
+if __name__ == '__main__':
+    start_game()
+    start_round()
+
+
+

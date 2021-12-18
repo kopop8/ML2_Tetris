@@ -17,7 +17,7 @@ Genetic algorithm parameters:
     Population size
 """
 # Number of the weights we are looking to optimize.
-num_weights = 6
+num_weights = 8
 sol_per_pop = 12
 num_parents_mating = 2 # Was 4
 
@@ -77,7 +77,7 @@ fitness = ga.cal_pop_fitness(new_population,-1,0)
 best_match_idx = np.where(fitness == np.max(fitness))
 
 # print("Best solution : ", new_population[best_match_idx, :])
-print("Best solution fitness : ", fitness[best_match_idx])
+# print("Best solution fitness : ", fitness[best_match_idx])
 
 
 import matplotlib.pyplot

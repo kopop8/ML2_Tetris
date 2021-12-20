@@ -21,7 +21,7 @@ Genetic algorithm parameters:
 
 #Creating the initial population.
 num_weights = 9
-sol_per_pop = 25
+sol_per_pop = 30
 num_parents_mating = 2 # Was 4
 
 # Defining the population size.
@@ -40,6 +40,11 @@ for generation in range(num_generations):
     best_outputs.append(np.max(fitness))
     # The best result in the current iteration.
     print("Best result : {}, Average : {}".format( np.max(fitness),np.average(fitness)))
+
+    best_match_idx = np.where(fitness == np.max(fitness))
+# print(new_population)
+    print("Best solution : ", new_population[best_match_idx, :])
+
     
     # Selecting the best parents in the population for mating.
     parents = ga.select_mating_pool(new_population, fitness, 
@@ -67,7 +72,7 @@ for generation in range(num_generations):
 fitness = ga.cal_pop_fitness(new_population,-1,0)
 # Then return the index of that solution corresponding to the best fitness.
 best_match_idx = np.where(fitness == np.max(fitness))
-print(new_population)
+# print(new_population)
 print("Best solution : ", new_population[best_match_idx, :])
 # print("Best solution fitness : ", fitness[best_match_idx])
 

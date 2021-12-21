@@ -20,8 +20,8 @@ Genetic algorithm parameters:
 
 
 #Creating the initial population.
-num_weights = 10
-sol_per_pop = 30
+num_weights = 9
+sol_per_pop = 20
 num_parents_mating = 4 # Was 4
 
 # Defining the population size.

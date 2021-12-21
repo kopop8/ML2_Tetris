@@ -384,7 +384,7 @@ class Matris(object):
         self.num_pits = np.count_nonzero(column_heights==0)
         self.row_transisions = self.get_row_transistions()
         self.col_transisions = self.get_col_transistions()
-        self.height = np.max(column_heights)
+        self.height = np.sum(column_heights)
         self.holes, self.col_holes = self.get_holes()
         self.bumpiness = self.get_bumpiness(column_heights)
         self.deepest_well = self.get_depth_deepest_well(column_heights)
@@ -424,7 +424,7 @@ class Matris(object):
         self.bumpiness = self.get_bumpiness(column_heights)
         self.deepest_well = self.get_depth_deepest_well(column_heights)
         self.lines_cleared_last_move= lines_cleared
-        self.height = np.max(column_heights)
+        self.height = np.sum(column_heights)
             
         self.needs_redraw = False
         self.matrix = old

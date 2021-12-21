@@ -22,7 +22,7 @@ Genetic algorithm parameters:
 #Creating the initial population.
 num_weights = 10
 sol_per_pop = 30
-num_parents_mating = 2 # Was 4
+num_parents_mating = 4 # Was 4
 
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.

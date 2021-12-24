@@ -1,24 +1,6 @@
 
 import numpy as np
 import ga
-"""
-The y=target is to maximize this equation ASAP:
-    y = w1x1+w2x2+w3x3+w4x4+w5x5+6wx6
-    where (x1,x2,x3,x4,x5,x6)=(4,-2,3.5,5,-11,-4.7)
-    What are the best values for the 6 weights w1 to w6?
-    We are going to use the genetic algorithm for the best possible values after a number of generations.
-"""
-
-
-
-"""
-Genetic algorithm parameters:
-    Mating pool size
-    Population size
-"""
-# Number of the weights we are looking to optimize.
-
-
 #Creating the initial population.
 num_weights = 9
 sol_per_pop = 20

@@ -956,7 +956,7 @@ class GameGA(Game):
         holessurf = renderpair("Info", ' Holes: {}, Col_Holes: {}, Bumpiness: {}'.format(self.matris.holes,self.matris.col_holes,self.matris.bumpiness))
         wellsurf = renderpair("", ' Pits: {}, Deepest Well: {}, Height: {}'.format(self.matris.num_pits, self.matris.deepest_well,self.matris.height,self.matris.row_transisions, self.matris.col_transisions))
         infosurf = renderpair("",  'rol_trans: {}, col_trans: {}'.format(self.matris.row_transisions, self.matris.col_transisions))
-        mutationsurf = renderpair("Info","Generation: {}/{}, Mutation: {}/{}".format(self.info[0],self.info[1],self.info[2],self.info[3]))
+        mutationsurf = renderpair("Info","Generation: {}/{}, Mutation: {}/{} ({}/{})".format(self.info[0],self.info[1],self.info[2],self.info[3],self.info[4],self.info[5]))
 
         height = 20 + (levelsurf.get_rect().height + 
                     scoresurf.get_rect().height +

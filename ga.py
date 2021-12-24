@@ -1,15 +1,28 @@
 import numpy as np
 import matris
-import pygame
-matris.start_game()
+
+
+
 def cal_pop_fitness(pop,  gen, num_gen):
     # Calculating the fitness value of each solution in the current population.
     # The fitness function calulates the sum of products between each input and its corresponding weight.
+    # Every child should run multiple times
     fitness = []
     for idx, user in enumerate(pop):
         info = [gen+1,num_gen,idx+1, len(pop)]
-        fitness.append(matris.start_round_GA(user, info))
+        avg_fitness = run_child(user, info)
+        fitness.append(avg_fitness)
     return fitness
+
+def run_child(user,info):
+    runs = 3
+    fitness_child = []
+    for i in  range(0,runs):
+        matris.start_game()
+        info_child = info + [i+1, runs]
+        fitness_child.append(matris.start_round_GA(user, info_child))
+    return np.average(fitness_child)
+
 
 def select_mating_pool(pop, fitness, num_parents):
     # Selecting the best individuals in the current generation as parents for producing the offspring of the next generation.

@@ -57,6 +57,8 @@ class Matris(object):
         """
         self.bag= random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
         self.next_tetromino = self.get_next_tetromino()
+        self.held_tetromino = None
+
         self.set_tetrominoes()
         self.tetromino_rotation = 0
         self.downwards_timer = 0
@@ -88,6 +90,8 @@ class Matris(object):
 
         self.paused = False
 
+        self.hold = False
+
         self.highscore = load_score()
         self.played_highscorebeaten_sound = False
 
@@ -107,11 +111,13 @@ class Matris(object):
         self.current_tetromino = self.next_tetromino
         self.next_tetromino = self.get_next_tetromino()
         self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
+        self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
         self.tetromino_position = (0,4) if len(self.current_tetromino.shape) == 2 else (0, 3)
         self.tetromino_rotation = 0
         self.tetromino_block = self.block(self.current_tetromino.color)
         # Disable shadow for now
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
+        self.hold = False
 
     def get_next_tetromino(self):
         tetromino = self.bag.pop()
@@ -132,6 +138,23 @@ class Matris(object):
         else: 
             return self.lock_tetromino_GA()
 
+    def hold_tetromino(self):
+        if self.hold:
+            pass
+        elif self.held_tetromino is None:
+            self.held_tetromino = self.current_tetromino
+            self.next_tetromino = self.get_next_tetromino()
+            self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
+            self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
+            self.hold = True
+        else:
+            tetromino = self.held_tetromino
+            self.held_tetromino = self.current_tetromino
+            self.current_tetromino = tetromino
+            self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
+            self.hold = True
+        # And more!
+        pass
 
     def update(self, timepassed):
         """
@@ -161,6 +184,8 @@ class Matris(object):
             #Controls movement of the tetromino
             if pressed(pygame.K_SPACE):
                 self.hard_drop()
+            elif pressed(pygame.K_h):
+                self.hold_tetromino()
             elif pressed(pygame.K_UP) or pressed(pygame.K_w):
                 self.request_rotation()
             elif pressed(pygame.K_LEFT) or pressed(pygame.K_a):
@@ -176,7 +201,6 @@ class Matris(object):
             elif unpressed(pygame.K_RIGHT) or unpressed(pygame.K_d):
                 self.movement_keys['right'] = 0
                 self.movement_keys_timer = (-self.movement_keys_speed)*2
-
 
 
 
@@ -562,6 +586,22 @@ class Matris(object):
                     surf.blit(self.block(self.next_tetromino.color), (x*BLOCKSIZE, y*BLOCKSIZE))
         return surf
 
+    def construct_surface_of_held_tetromino(self):
+        """
+        Draws the image of the held tetromino   ---- change to making one function to construct surf and input of tetromino
+        """
+        if self.held_tetromino is None:
+            shape = ""
+        else:
+            shape = self.held_tetromino.shape
+        surf = Surface((len(shape)*BLOCKSIZE, len(shape)*BLOCKSIZE), pygame.SRCALPHA, 32)
+
+        for y in range(len(shape)):
+            for x in range(len(shape)):
+                if shape[y][x]:
+                    surf.blit(self.block(self.next_tetromino.color), (x*BLOCKSIZE, y*BLOCKSIZE))
+        return surf
+
 
     def get_column_heights(self):
         height_array = np.zeros(MATRIX_WIDTH)
@@ -713,6 +753,8 @@ class Game(object):
         """
         if not self.matris.paused:
             self.blit_next_tetromino(self.matris.surface_of_next_tetromino)
+            self.blit_held_tetromino(self.matris.surface_of_held_tetromino)
+
             self.blit_info()
 
             self.matris.draw_surface()
@@ -775,6 +817,17 @@ class Game(object):
         """
         Draws the next tetromino in a box to the side of the board
         """
+        textcolor = (255, 255, 255)
+        font = pygame.font.Font(None, 20)
+        width = (WIDTH - (MATRIS_OFFSET + BLOCKSIZE * MATRIX_WIDTH + BORDERWIDTH * 2)) - MATRIS_OFFSET * 2
+
+        def txt(text):
+            text = font.render(text, True, textcolor)
+            surf = Surface((width, text.get_rect().height + BORDERWIDTH*2), pygame.SRCALPHA, 32)
+            surf.blit(text, text.get_rect(top=BORDERWIDTH+10, left=BORDERWIDTH+10))
+            return surf
+
+        title = txt("Next")
         area = Surface((BLOCKSIZE*5, BLOCKSIZE*5))
         area.fill(BORDERCOLOR)
         area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, BLOCKSIZE*5-BORDERWIDTH*2, BLOCKSIZE*5-BORDERWIDTH*2))
@@ -784,9 +837,40 @@ class Game(object):
         # ^^ I'm assuming width and height are the same
 
         center = areasize/2 - tetromino_surf_size/2
+        area.blit(title, (0,0))
         area.blit(tetromino_surf, (center, center))
 
         screen.blit(area, area.get_rect(top=MATRIS_OFFSET, centerx=TRICKY_CENTERX))
+
+    def blit_held_tetromino(self, tetromino_surf):
+        """
+        Draws the next tetromino in a box to the side of the board
+        """
+        textcolor = (255, 255, 255)
+        font = pygame.font.Font(None, 20)
+        width = (WIDTH - (MATRIS_OFFSET + BLOCKSIZE * MATRIX_WIDTH + BORDERWIDTH * 2)) - MATRIS_OFFSET * 2
+
+        def txt(text):
+            text = font.render(text, True, textcolor)
+            surf = Surface((width, text.get_rect().height + BORDERWIDTH * 2), pygame.SRCALPHA, 32)
+            surf.blit(text, text.get_rect(top=BORDERWIDTH + 10, left=BORDERWIDTH + 10))
+            return surf
+
+        title = txt("Hold")
+
+        area = Surface((BLOCKSIZE*5, BLOCKSIZE*5))
+        area.fill(BORDERCOLOR)
+        area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, BLOCKSIZE*5-BORDERWIDTH*2, BLOCKSIZE*5-BORDERWIDTH*2))
+
+        areasize = area.get_size()[0]
+        tetromino_surf_size = tetromino_surf.get_size()[0]
+        # ^^ I'm assuming width and height are the same
+
+        center = areasize/2 - tetromino_surf_size/2
+        area.blit(title, (0,0))
+        area.blit(tetromino_surf, (center, center))
+
+        screen.blit(area, area.get_rect(top=2* MATRIS_OFFSET+areasize, centerx=TRICKY_CENTERX))
 
 class Menu(object):
     """

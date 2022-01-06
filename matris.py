@@ -145,14 +145,18 @@ class Matris(object):
             self.held_tetromino = self.current_tetromino
             self.next_tetromino = self.get_next_tetromino()
             self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
-            self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
-            self.hold = True
         else:
             tetromino = self.held_tetromino
             self.held_tetromino = self.current_tetromino
             self.current_tetromino = tetromino
-            self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
-            self.hold = True
+
+        self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
+        self.tetromino_position = (0, 4) if len(self.current_tetromino.shape) == 2 else (0, 3)
+        self.tetromino_rotation = 0
+        self.tetromino_block = self.block(self.current_tetromino.color)
+        # Disable shadow for now
+        self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
+        self.hold = True
         # And more!
         pass
 
@@ -599,7 +603,7 @@ class Matris(object):
         for y in range(len(shape)):
             for x in range(len(shape)):
                 if shape[y][x]:
-                    surf.blit(self.block(self.next_tetromino.color), (x*BLOCKSIZE, y*BLOCKSIZE))
+                    surf.blit(self.block(self.held_tetromino.color), (x*BLOCKSIZE, y*BLOCKSIZE))
         return surf
 
 
@@ -837,7 +841,7 @@ class Game(object):
         # ^^ I'm assuming width and height are the same
 
         center = areasize/2 - tetromino_surf_size/2
-        area.blit(title, (0,0))
+        area.blit(title, (0,BLOCKSIZE*3))
         area.blit(tetromino_surf, (center, center))
 
         screen.blit(area, area.get_rect(top=MATRIS_OFFSET, centerx=TRICKY_CENTERX))
@@ -856,7 +860,7 @@ class Game(object):
             surf.blit(text, text.get_rect(top=BORDERWIDTH + 10, left=BORDERWIDTH + 10))
             return surf
 
-        title = txt("Hold")
+        title = txt("Hold (h)")
 
         area = Surface((BLOCKSIZE*5, BLOCKSIZE*5))
         area.fill(BORDERCOLOR)
@@ -867,7 +871,7 @@ class Game(object):
         # ^^ I'm assuming width and height are the same
 
         center = areasize/2 - tetromino_surf_size/2
-        area.blit(title, (0,0))
+        area.blit(title, (0,BLOCKSIZE*3))
         area.blit(tetromino_surf, (center, center))
 
         screen.blit(area, area.get_rect(top=2* MATRIS_OFFSET+areasize, centerx=TRICKY_CENTERX))

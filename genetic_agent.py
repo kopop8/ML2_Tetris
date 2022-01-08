@@ -3,7 +3,7 @@ import numpy as np
 import ga
 #Creating the initial population.
 num_weights = 9
-sol_per_pop = 20
+sol_per_pop = 5
 num_parents_mating = 4 # Was 4
 
 # Defining the population size.
@@ -11,7 +11,7 @@ pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chro
 new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
 print("Beginning training")
 best_outputs = []
-num_generations = 5
+num_generations = 3
 for generation in range(num_generations):
     print("Generation : ", generation+1)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen

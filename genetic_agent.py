@@ -7,12 +7,13 @@ sol_per_pop = 20
 num_parents_mating = int(sol_per_pop*0.2) # Was 0.2% of best performing get to next generation
 num_mutations = int(sol_per_pop*0.2)
 
+
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
 new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
 print("Beginning training")
 best_outputs = []
-num_generations = 5
+num_generations = 3
 for generation in range(num_generations):
     print("Generation : ", generation+1)
     # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen

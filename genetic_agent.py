@@ -4,7 +4,8 @@ import ga
 #Creating the initial population.
 num_weights = 9
 sol_per_pop = 20
-num_parents_mating = 4 # Was 4
+num_parents_mating = int(sol_per_pop*0.2) # Was 0.2% of best performing get to next generation
+num_mutations = int(sol_per_pop*0.2)
 
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
@@ -41,7 +42,7 @@ for generation in range(num_generations):
     # print(offspring_crossover)
 
     # Adding some variations to the offspring using mutation.
-    offspring_mutation = ga.mutation(offspring_crossover, num_mutations=2)
+    offspring_mutation = ga.mutation(offspring_crossover, num_mutations=num_mutations)
     # print("Mutation")
     # print(offspring_mutation)
 

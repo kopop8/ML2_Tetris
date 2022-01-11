@@ -1,3 +1,4 @@
+from random import random
 import numpy as np
 import matris
 
@@ -56,7 +57,8 @@ def mutation(offspring_crossover, num_mutations=1):
         gene_idx = mutations_counter - 1
         for mutation_num in range(num_mutations):
             # The random value to be added to the gene.
-            random_value = np.random.uniform(-1.0, 1.0, 1)
+            random_value = np.random.uniform(-0.5, 5, 1)
+            print('random_value', random_value)
             offspring_crossover[idx, gene_idx] = offspring_crossover[idx, gene_idx] + random_value
             gene_idx = gene_idx + mutations_counter
     return offspring_crossover

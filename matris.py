@@ -456,7 +456,7 @@ class Matris(object):
             
         self.needs_redraw = False
         self.matrix = old
-        return old
+        return self.get_state()
 
     def get_row_transistions(self):
         trans = 0
@@ -972,16 +972,20 @@ class GameGA(Game):
                 scores = []
                 positions = []
                 rotations = []
+                # Get current falling tetronimo
                 curr, next = self.matris.get_current_tetromino()
+                # Get possible positions left and right
                 pos_left, pos_right = self.get_possible_pos(curr)
+                # Get possible rotations
                 rot_range = self.get_possible_rot(curr)
+                # Let the GA calculate the score for every position the block can fall
                 for rot in rot_range:
                     for pos in range(pos_left,pos_right+1):
-                        self.matris.place_block(pos,rot,False)
-                        state = self.matris.get_state()
+                        state = self.matris.place_block(pos,rot,False)
                         scores.append((np.sum(state*user)))
                         positions.append(pos)
                         rotations.append(rot)
+                # Actually place the block in the position and rotation with the highest
                 max_value = max(scores)
                 max_index = scores.index(max_value)
                 best_pos = positions[max_index]

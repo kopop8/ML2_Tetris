@@ -124,7 +124,7 @@ class Matris(object):
         if len(self.bag) == 0:
             self.bag = random.sample(list_of_tetrominoes, len(list_of_tetrominoes))
         return tetromino
-    def hard_drop(self,place_block= True):
+    def hard_drop(self,place_block= True,tetromino_to_place=None):
         """
         Instantly places tetrominos in the cells below
         """
@@ -136,13 +136,14 @@ class Matris(object):
         if place_block:
             self.lock_tetromino()
         else: 
-            return self.lock_tetromino_GA()
+            return self.lock_tetromino_GA(tetromino_to_place)
 
     def hold_tetromino(self):
         if self.hold:
             pass
         elif self.held_tetromino is None:
             self.held_tetromino = self.current_tetromino
+            self.current_tetromino = self.next_tetromino
             self.next_tetromino = self.get_next_tetromino()
             self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
         else:
@@ -383,6 +384,7 @@ class Matris(object):
         This method is called whenever the falling tetromino "dies". `self.matrix` is updated,
         the lines are counted and cleared, and a new tetromino is chosen.
         """
+        self.tetromino_block = self.block(self.current_tetromino.color) # not sure why this has to be here, but cannot find the problem elsewhere...
         self.matrix = self.blend()
 
         lines_cleared = self.remove_lines()
@@ -422,7 +424,7 @@ class Matris(object):
             
         self.needs_redraw = True
 
-    def lock_tetromino_GA(self):
+    def lock_tetromino_GA(self, tetromino_to_place):
         """
         This method is called whenever the falling tetromino "dies". `self.matrix` is updated,
         the lines are counted and cleared, and a new tetromino is chosen.
@@ -441,7 +443,7 @@ class Matris(object):
         self.combo_last = self.combo + 1 if lines_cleared else 1
 
 
-        self.set_current_tetromino(self.current_tetromino,self.next_tetromino)
+        self.set_current_tetromino(tetromino_to_place,self.next_tetromino)
 
         # States
         column_heights = self.get_column_heights()
@@ -692,7 +694,7 @@ class Matris(object):
         else: return [0]
 
 
-    def place_block(self, pos,rot,place_block=True):
+    def place_block(self, pos,rot,place_block=True,tet=None):
         for _ in range(abs(rot)):
             self.request_rotation()
         if pos < 0:
@@ -701,13 +703,13 @@ class Matris(object):
         elif pos > 0:
             for _ in range(abs(pos)):
                 self.request_movement('right')
-        return self.hard_drop(place_block)
+        return self.hard_drop(place_block, tet)
     
     def set_matrix(self,matrix):
         self.matrix = matrix
     
     def get_current_tetromino(self):
-        return self.current_tetromino, self.next_tetromino
+        return self.current_tetromino, self.held_tetromino, self.next_tetromino
         
     def set_current_tetromino(self,curr,next):
         """
@@ -964,7 +966,9 @@ class GameGA(Game):
         matris_border = Surface((MATRIX_WIDTH*BLOCKSIZE+BORDERWIDTH*2, VISIBLE_MATRIX_HEIGHT*BLOCKSIZE+BORDERWIDTH*2))
         matris_border.fill(BORDERCOLOR)
         screen.blit(matris_border, (MATRIS_OFFSET,MATRIS_OFFSET))
-        
+
+        self.matris.hold_tetromino()
+
         self.redraw()
         while True:
             try:   
@@ -972,25 +976,31 @@ class GameGA(Game):
                 scores = []
                 positions = []
                 rotations = []
-                # Get current falling tetronimo
-                curr, next = self.matris.get_current_tetromino()
-                # Get possible positions left and right
-                pos_left, pos_right = self.get_possible_pos(curr)
-                # Get possible rotations
-                rot_range = self.get_possible_rot(curr)
-                # Let the GA calculate the score for every position the block can fall
-                for rot in rot_range:
-                    for pos in range(pos_left,pos_right+1):
-                        state = self.matris.place_block(pos,rot,False)
-                        scores.append((np.sum(state*user)))
-                        positions.append(pos)
-                        rotations.append(rot)
-                # Actually place the block in the position and rotation with the highest
+                tetromino = []
+                curr, held, next = self.matris.get_current_tetromino()
+
+                for tet in curr,held if not self.matris.hold else curr:
+                    self.matris.current_tetromino = tet
+                    pos_left, pos_right = self.get_possible_pos(tet)
+                    rot_range = self.get_possible_rot(tet)
+                    for rot in rot_range:
+                        for pos in range(pos_left,pos_right+1):
+                            state = self.matris.place_block(pos,rot,False,tet)
+                            scores.append((np.sum(state*user)))
+                            positions.append(pos)
+                            rotations.append(rot)
+                            tetromino.append(tet)
+                self.matris.current_tetromino = curr
                 max_value = max(scores)
                 max_index = scores.index(max_value)
                 best_pos = positions[max_index]
                 best_rot = rotations[max_index]
-                self.matris.place_block(best_pos,best_rot,True)
+                best_tetromino = tetromino[max_index]
+                if best_tetromino == curr:
+                    self.matris.place_block(best_pos,best_rot,True,curr)
+                    self.matris.hold = False
+                else:
+                    self.matris.hold_tetromino()
                 self.redraw()
             except GameOver:
                 return self.matris.get_score()

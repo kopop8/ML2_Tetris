@@ -141,25 +141,27 @@ class Matris(object):
     def hold_tetromino(self):
         if self.hold:
             pass
-        elif self.held_tetromino is None:
-            self.held_tetromino = self.current_tetromino
-            self.current_tetromino = self.next_tetromino
-            self.next_tetromino = self.get_next_tetromino()
-            self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
         else:
-            tetromino = self.held_tetromino
-            self.held_tetromino = self.current_tetromino
-            self.current_tetromino = tetromino
+            if self.held_tetromino is None:
+                self.held_tetromino = self.current_tetromino
+                self.current_tetromino = self.next_tetromino
+                self.next_tetromino = self.get_next_tetromino()
+                self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
+            else:
+                tetromino = self.held_tetromino
+                self.held_tetromino = self.current_tetromino
+                self.current_tetromino = tetromino
+            print('held',self.held_tetromino)
 
-        self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
-        self.tetromino_position = (0, 4) if len(self.current_tetromino.shape) == 2 else (0, 3)
-        self.tetromino_rotation = 0
-        self.tetromino_block = self.block(self.current_tetromino.color)
-        # Disable shadow for now
-        self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
-        self.hold = True
-        # And more!
-        pass
+            self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
+            self.tetromino_position = (0, 4) if len(self.current_tetromino.shape) == 2 else (0, 3)
+            self.tetromino_rotation = 0
+            self.tetromino_block = self.block(self.current_tetromino.color)
+            # Disable shadow for now
+            self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
+            self.hold = True
+            # And more!
+            pass
 
     def update(self, timepassed):
         """
@@ -316,12 +318,15 @@ class Matris(object):
         """
         Checks if teteromino can move in the given direction and returns its new position if movement is possible
         """
+
         posY, posX = self.tetromino_position
         if direction == 'left' and self.blend(position=(posY, posX-1)):
+            print('movement requested')
             self.tetromino_position = (posY, posX-1)
             self.needs_redraw = True
             return self.tetromino_position
         elif direction == 'right' and self.blend(position=(posY, posX+1)):
+            print('movement requested')
             self.tetromino_position = (posY, posX+1)
             self.needs_redraw = True
             return self.tetromino_position
@@ -695,6 +700,10 @@ class Matris(object):
 
 
     def place_block(self, pos,rot,place_block=True,tet=None):
+        if place_block:
+            print(tet,rot)
+        pos = 0
+        rot = 0
         for _ in range(abs(rot)):
             self.request_rotation()
         if pos < 0:
@@ -997,13 +1006,12 @@ class GameGA(Game):
                 best_rot = rotations[max_index]
                 best_tetromino = tetromino[max_index]
                 if best_tetromino == curr:
-                    self.matris.place_block(best_pos,best_rot,True,curr)
                     self.matris.hold = False
                 else:
                     self.matris.hold_tetromino()
-                    # Idk of dit erbij moet
-                    self.matris.place_block(best_pos,best_rot,True,held)
                     self.matris.hold = False
+                print(best_tetromino)
+                self.matris.place_block(best_pos,best_rot,True)
                 self.redraw()
             except GameOver:
                 return self.matris.get_score()

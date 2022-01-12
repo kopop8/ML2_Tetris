@@ -235,19 +235,18 @@ class Matris(object):
         Draws the image of the current tetromino
         """
         with_tetromino = self.blend(matrix=self.place_shadow())
-        if with_tetromino:
-            for y in range(MATRIX_HEIGHT):
-                for x in range(MATRIX_WIDTH):
+        for y in range(MATRIX_HEIGHT):
+            for x in range(MATRIX_WIDTH):
 
-                    #                                       I hide the 2 first rows by drawing them outside of the surface
-                    block_location = Rect(x*BLOCKSIZE, (y*BLOCKSIZE - 2*BLOCKSIZE), BLOCKSIZE, BLOCKSIZE)
-                    if with_tetromino[(y,x)] is None:
+                #                                       I hide the 2 first rows by drawing them outside of the surface
+                block_location = Rect(x*BLOCKSIZE, (y*BLOCKSIZE - 2*BLOCKSIZE), BLOCKSIZE, BLOCKSIZE)
+                if with_tetromino[(y,x)] is None:
+                    self.surface.fill(BGCOLOR, block_location)
+                else:
+                    if with_tetromino[(y,x)][0] == 'shadow':
                         self.surface.fill(BGCOLOR, block_location)
-                    else:
-                        if with_tetromino[(y,x)][0] == 'shadow':
-                            self.surface.fill(BGCOLOR, block_location)
-                        
-                        self.surface.blit(with_tetromino[(y,x)][1], block_location)
+                    
+                    self.surface.blit(with_tetromino[(y,x)][1], block_location)
                     
     def gameover(self, full_exit=False):
         """
@@ -386,8 +385,9 @@ class Matris(object):
         the lines are counted and cleared, and a new tetromino is chosen.
         """
         self.tetromino_block = self.block(self.current_tetromino.color) # not sure why this has to be here, but cannot find the problem elsewhere...
-        self.matrix = self.blend()
-        if self.matrix:
+        blend = self.blend()
+        if blend:
+            self.matrix = blend
             lines_cleared = self.remove_lines()
             self.lines_cleared_last_move= lines_cleared
             self.lines += lines_cleared
@@ -433,13 +433,9 @@ class Matris(object):
         the lines are counted and cleared, and a new tetromino is chosen.
         """
         old = self.matrix
-        self.matrix = self.blend()
-      
-
-
-
-        
-        if self.matrix:
+        blend = self.blend()
+        if blend:
+            self.matrix = blend
             lines_cleared = self.remove_lines()
             if lines_cleared:
                 self.score_last = 100 * (lines_cleared**2) * self.combo
@@ -456,11 +452,15 @@ class Matris(object):
             self.lines_cleared_last_move= lines_cleared
             self.height = np.sum(column_heights)        
             self.needs_redraw = False
+            self.set_current_tetromino(tetromino_to_place,self.next_tetromino)    
+            self.matrix = old
+            return self.get_state()
         else:
+            self.needs_redraw = False
+            self.set_current_tetromino(tetromino_to_place,self.next_tetromino)    
+            self.matrix = old
             return False
-        self.set_current_tetromino(tetromino_to_place,self.next_tetromino)    
-        self.matrix = old
-        return self.get_state()
+
 
     def get_row_transistions(self):
         trans = 0

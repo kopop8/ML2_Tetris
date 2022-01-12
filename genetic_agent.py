@@ -3,7 +3,7 @@ import numpy as np
 import ga
 #Creating the initial population.
 num_weights = 9
-sol_per_pop = 20
+sol_per_pop = 50
 num_generations = 5
 num_parents_mating = int(sol_per_pop*0.2) # Was 0.2% of best performing get to next generation
 num_mutations = int(sol_per_pop*0.2)

@@ -235,19 +235,19 @@ class Matris(object):
         Draws the image of the current tetromino
         """
         with_tetromino = self.blend(matrix=self.place_shadow())
+        if with_tetromino:
+            for y in range(MATRIX_HEIGHT):
+                for x in range(MATRIX_WIDTH):
 
-        for y in range(MATRIX_HEIGHT):
-            for x in range(MATRIX_WIDTH):
-
-                #                                       I hide the 2 first rows by drawing them outside of the surface
-                block_location = Rect(x*BLOCKSIZE, (y*BLOCKSIZE - 2*BLOCKSIZE), BLOCKSIZE, BLOCKSIZE)
-                if with_tetromino[(y,x)] is None:
-                    self.surface.fill(BGCOLOR, block_location)
-                else:
-                    if with_tetromino[(y,x)][0] == 'shadow':
+                    #                                       I hide the 2 first rows by drawing them outside of the surface
+                    block_location = Rect(x*BLOCKSIZE, (y*BLOCKSIZE - 2*BLOCKSIZE), BLOCKSIZE, BLOCKSIZE)
+                    if with_tetromino[(y,x)] is None:
                         self.surface.fill(BGCOLOR, block_location)
-                    
-                    self.surface.blit(with_tetromino[(y,x)][1], block_location)
+                    else:
+                        if with_tetromino[(y,x)][0] == 'shadow':
+                            self.surface.fill(BGCOLOR, block_location)
+                        
+                        self.surface.blit(with_tetromino[(y,x)][1], block_location)
                     
     def gameover(self, full_exit=False):
         """
@@ -387,43 +387,45 @@ class Matris(object):
         """
         self.tetromino_block = self.block(self.current_tetromino.color) # not sure why this has to be here, but cannot find the problem elsewhere...
         self.matrix = self.blend()
+        if self.matrix:
+            lines_cleared = self.remove_lines()
+            self.lines_cleared_last_move= lines_cleared
+            self.lines += lines_cleared
 
-        lines_cleared = self.remove_lines()
-        self.lines_cleared_last_move= lines_cleared
-        self.lines += lines_cleared
+            if lines_cleared:
+                if lines_cleared >= 4:
+                    self.linescleared_sound.play()
+                self.score += 100 * (lines_cleared**2) * self.combo
 
-        if lines_cleared:
-            if lines_cleared >= 4:
-                self.linescleared_sound.play()
-            self.score += 100 * (lines_cleared**2) * self.combo
+                if not self.played_highscorebeaten_sound and self.score > self.highscore:
+                    if self.highscore != 0:
+                        self.highscorebeaten_sound.play()
+                    self.played_highscorebeaten_sound = True
 
-            if not self.played_highscorebeaten_sound and self.score > self.highscore:
-                if self.highscore != 0:
-                    self.highscorebeaten_sound.play()
-                self.played_highscorebeaten_sound = True
+            if self.lines >= self.level*5:
+                self.levelup_sound.play()
+                self.level += 1
 
-        if self.lines >= self.level*5:
-            self.levelup_sound.play()
-            self.level += 1
+            self.combo = self.combo + 1 if lines_cleared else 1
 
-        self.combo = self.combo + 1 if lines_cleared else 1
+            self.set_tetrominoes()
 
-        self.set_tetrominoes()
+            #States
+            column_heights = self.get_column_heights()
+            self.num_pits = np.count_nonzero(column_heights==0)
+            self.row_transisions = self.get_row_transistions()
+            self.col_transisions = self.get_col_transistions()
+            self.height = np.sum(column_heights)
+            self.holes, self.col_holes = self.get_holes(column_heights)
+            self.bumpiness = self.get_bumpiness(column_heights)
+            self.deepest_well = self.get_depth_deepest_well(column_heights)
 
-        #States
-        column_heights = self.get_column_heights()
-        self.num_pits = np.count_nonzero(column_heights==0)
-        self.row_transisions = self.get_row_transistions()
-        self.col_transisions = self.get_col_transistions()
-        self.height = np.sum(column_heights)
-        self.holes, self.col_holes = self.get_holes(column_heights)
-        self.bumpiness = self.get_bumpiness(column_heights)
-        self.deepest_well = self.get_depth_deepest_well(column_heights)
-
-        if not self.blend():
+            if not self.blend():
+                return self.gameover()
+                
+            self.needs_redraw = True
+        else:
             return self.gameover()
-            
-        self.needs_redraw = True
 
     def lock_tetromino_GA(self, tetromino_to_place):
         """
@@ -432,21 +434,17 @@ class Matris(object):
         """
         old = self.matrix
         self.matrix = self.blend()
-        lines_cleared = self.remove_lines()
-
-        # self.lines += lines_cleared
-        
-        if lines_cleared:
-            self.score_last = 100 * (lines_cleared**2) * self.combo
-
-        # Combo can be added again but its not official right now
-        self.combo_last = self.combo + 1 if lines_cleared else 1
+      
 
 
-        self.set_current_tetromino(tetromino_to_place,self.next_tetromino)
 
         
         if self.matrix:
+            lines_cleared = self.remove_lines()
+            if lines_cleared:
+                self.score_last = 100 * (lines_cleared**2) * self.combo
+            # Combo can be added again but its not official right now
+            self.combo_last = self.combo + 1 if lines_cleared else 1
             # States
             column_heights = self.get_column_heights()
             self.num_pits = np.count_nonzero(column_heights==0)
@@ -459,7 +457,8 @@ class Matris(object):
             self.height = np.sum(column_heights)        
             self.needs_redraw = False
         else:
-            return False    
+            return False
+        self.set_current_tetromino(tetromino_to_place,self.next_tetromino)    
         self.matrix = old
         return self.get_state()
 

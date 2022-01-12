@@ -1001,6 +1001,9 @@ class GameGA(Game):
                     self.matris.hold = False
                 else:
                     self.matris.hold_tetromino()
+                    # Idk of dit erbij moet
+                    self.matris.place_block(best_pos,best_rot,True,held)
+                    self.matris.hold = False
                 self.redraw()
             except GameOver:
                 return self.matris.get_score()

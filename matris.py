@@ -450,7 +450,7 @@ class Matris(object):
         # States
         column_heights = self.get_column_heights()
         self.num_pits = np.count_nonzero(column_heights==0)
-        self.holes, self.col_holes = self.get_holes()
+        self.holes, self.col_holes = self.get_holes(column_heights)
         self.row_transisions = self.get_row_transistions()
         self.col_transisions = self.get_col_transistions()
         self.bumpiness = self.get_bumpiness(column_heights)

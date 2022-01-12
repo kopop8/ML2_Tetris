@@ -151,7 +151,6 @@ class Matris(object):
                 tetromino = self.held_tetromino
                 self.held_tetromino = self.current_tetromino
                 self.current_tetromino = tetromino
-            print('held',self.held_tetromino)
 
             self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
             self.tetromino_position = (0, 4) if len(self.current_tetromino.shape) == 2 else (0, 3)
@@ -321,12 +320,10 @@ class Matris(object):
 
         posY, posX = self.tetromino_position
         if direction == 'left' and self.blend(position=(posY, posX-1)):
-            print('movement requested')
             self.tetromino_position = (posY, posX-1)
             self.needs_redraw = True
             return self.tetromino_position
         elif direction == 'right' and self.blend(position=(posY, posX+1)):
-            print('movement requested')
             self.tetromino_position = (posY, posX+1)
             self.needs_redraw = True
             return self.tetromino_position
@@ -420,7 +417,7 @@ class Matris(object):
         self.row_transisions = self.get_row_transistions()
         self.col_transisions = self.get_col_transistions()
         self.height = np.sum(column_heights)
-        self.holes, self.col_holes = self.get_holes()
+        self.holes, self.col_holes = self.get_holes(column_heights)
         self.bumpiness = self.get_bumpiness(column_heights)
         self.deepest_well = self.get_depth_deepest_well(column_heights)
 
@@ -491,30 +488,15 @@ class Matris(object):
                 trans +=1
         return trans
 
-    def get_holes(self):
+    def get_holes(self, peaks):
         holes = 0
         col_with_holes = []
-        for item in self.matrix.items():
-            block = item[1]
-            idx = item[0]
-            # look items around
-            item_around = 0
-            if block is None:
-                # above
-                if (idx[0]-1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]-1,idx[1]]:
-                    item_around += 1
-                # below
-                if (idx[0]+1,idx[1]) not in self.matrix.keys() or self.matrix[idx[0]+1,idx[1]]:
-                    item_around += 1
-                # left
-                if (idx[0],idx[1]-1) not in self.matrix.keys() or self.matrix[idx[0],idx[1]-1]:
-                    item_around += 1
-                # right
-                if (idx[0],idx[1]+1) not in self.matrix.keys() or self.matrix[idx[0],idx[1]+1]:
-                    item_around += 1
-                if item_around >=3 and (idx[0]-1,idx[1]) in self.matrix.keys() and self.matrix[idx[0]-1,idx[1]]:
-                    holes+=1
-                    col_with_holes.append(idx)
+        for idx, peak in enumerate(peaks):
+            if peak > 0:
+                for height in range(int(22-peak)+1,22):
+                    if not (self.matrix[height,idx]):
+                        holes += 1
+                        col_with_holes.append(idx)
         return holes, len(set(col_with_holes))
 
     def remove_lines(self):
@@ -631,7 +613,7 @@ class Matris(object):
     def get_bumpiness(self, column_heights):
         bumpiness = 0
         for idx, _ in enumerate(column_heights):
-            if idx+1 < len(column_heights)-1:
+            if idx+1 < len(column_heights):
                 bumpiness += np.absolute(column_heights[idx] - column_heights[idx+1])
         return bumpiness
 
@@ -700,10 +682,6 @@ class Matris(object):
 
 
     def place_block(self, pos,rot,place_block=True,tet=None):
-        if place_block:
-            print(tet,rot)
-        pos = 0
-        rot = 0
         for _ in range(abs(rot)):
             self.request_rotation()
         if pos < 0:
@@ -1010,7 +988,6 @@ class GameGA(Game):
                 else:
                     self.matris.hold_tetromino()
                     self.matris.hold = False
-                print(best_tetromino)
                 self.matris.place_block(best_pos,best_rot,True)
                 self.redraw()
             except GameOver:
@@ -1023,7 +1000,7 @@ class GameGA(Game):
             return  -4,5
         # 0
         if color == 'yellow':
-            return -4, 4
+            return -4, 5
         # I
         if color == 'blue':
             return -5, 4

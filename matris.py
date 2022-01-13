@@ -139,9 +139,7 @@ class Matris(object):
             return self.lock_tetromino_GA(tetromino_to_place)
 
     def hold_tetromino(self):
-        if self.hold:
-            pass
-        else:
+        if ~self.hold:
             if self.held_tetromino is None:
                 self.held_tetromino = self.current_tetromino
                 self.current_tetromino = self.next_tetromino
@@ -153,14 +151,15 @@ class Matris(object):
                 self.current_tetromino = tetromino
 
             self.surface_of_held_tetromino = self.construct_surface_of_held_tetromino()
+            # TODO
             self.tetromino_position = (0, 4) if len(self.current_tetromino.shape) == 2 else (0, 3)
+            
             self.tetromino_rotation = 0
             self.tetromino_block = self.block(self.current_tetromino.color)
             # Disable shadow for now
             self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
             self.hold = True
             # And more!
-            pass
 
     def update(self, timepassed):
         """
@@ -376,7 +375,6 @@ class Matris(object):
         del boxarr # deleting boxarr or else the box surface will be 'locked' or something like that and won't blit.
         border.blit(box, Rect(borderwidth, borderwidth, 0, 0))
 
-
         return border
 
     def lock_tetromino(self):
@@ -393,8 +391,8 @@ class Matris(object):
             self.lines += lines_cleared
 
             if lines_cleared:
-                if lines_cleared >= 4:
-                    self.linescleared_sound.play()
+                # if lines_cleared >= 4:
+                    # self.linescleared_sound.play()
                 self.score += 100 * (lines_cleared**2) * self.combo
 
                 if not self.played_highscorebeaten_sound and self.score > self.highscore:
@@ -403,7 +401,7 @@ class Matris(object):
                     self.played_highscorebeaten_sound = True
 
             if self.lines >= self.level*5:
-                self.levelup_sound.play()
+                # self.levelup_sound.play()
                 self.level += 1
 
             self.combo = self.combo + 1 if lines_cleared else 1
@@ -460,7 +458,6 @@ class Matris(object):
             self.set_current_tetromino(tetromino_to_place,self.next_tetromino)    
             self.matrix = old
             return False
-
 
     def get_row_transistions(self):
         trans = 0
@@ -679,7 +676,7 @@ class Matris(object):
         if wells:
             deepest_index = np.argmax([depth for start, end, depth in wells])
             return wells[deepest_index][2]
-        else: return [0]
+        else: return 0
 
 
     def place_block(self, pos,rot,place_block=True,tet=None):
@@ -700,6 +697,7 @@ class Matris(object):
         """
         Sets information for the current and next tetrominos
         """
+        # TODO2
         self.current_tetromino = curr
         self.next_tetromino = next
         self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
@@ -709,7 +707,6 @@ class Matris(object):
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
     
     def get_state(self):
-        # return [self.bumpiness,self.holes,self.lines_cleared_last_move, np.max(self.deepest_well),self.height, self.combo_last, self.score_last, self.num_pits]
         return [self.bumpiness,self.holes,self.lines_cleared_last_move, self.deepest_well,self.height, self.num_pits, self.row_transisions, self.col_transisions, self.col_holes]
 
 
@@ -945,7 +942,7 @@ class GameGA(Game):
         self.matris = Matris()
         self.user = user
         self.info = info
-
+        # TODO3
         screen.blit(construct_nightmare(screen.get_size()), (0,0))
         
         matris_border = Surface((MATRIX_WIDTH*BLOCKSIZE+BORDERWIDTH*2, VISIBLE_MATRIX_HEIGHT*BLOCKSIZE+BORDERWIDTH*2))
@@ -963,9 +960,9 @@ class GameGA(Game):
                 rotations = []
                 tetromino = []
                 curr, held, next = self.matris.get_current_tetromino()
-
-                for tet in curr,held if not self.matris.hold else curr:
+                for tet in curr, held if not self.matris.hold else curr:
                     self.matris.current_tetromino = tet
+                    self.matris.tetromino_position = (0, 4) if len(self.matris.current_tetromino.shape) == 2 else (0, 3)
                     pos_left, pos_right = self.get_possible_pos(tet)
                     rot_range = self.get_possible_rot(tet)
                     for rot in rot_range:
@@ -976,7 +973,9 @@ class GameGA(Game):
                                 positions.append(pos)
                                 rotations.append(rot)
                                 tetromino.append(tet)
+                # actually place
                 self.matris.current_tetromino = curr
+                self.matris.tetromino_position = (0, 4) if len(self.matris.current_tetromino.shape) == 2 else (0, 3)
                 max_value = max(scores)
                 max_index = scores.index(max_value)
                 best_pos = positions[max_index]
@@ -986,7 +985,8 @@ class GameGA(Game):
                     self.matris.hold = False
                 else:
                     self.matris.hold_tetromino()
-                    self.matris.hold = False
+                    # Dont know if this should bE HERE
+                    self.matris.hold = True
                 self.matris.place_block(best_pos,best_rot,True)
                 self.redraw()
             except GameOver:

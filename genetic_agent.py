@@ -75,9 +75,9 @@ print("Best solution : ", new_population[best_match_idx, :])
 # print("Best solution fitness : ", fitness[best_match_idx])
 
 
-import matplotlib.pyplot
-matplotlib.pyplot.plot(best_outputs)
-matplotlib.pyplot.xlabel("Iteration")
-matplotlib.pyplot.ylabel("Fitness")
-matplotlib.pyplot.show()
-matplotlib.pyplot.savefig('plot.png')
+import matplotlib.pyplot as plt
+plt.plot(best_outputs)
+plt.xlabel("Iteration")
+plt.ylabel("Fitness")
+plt.show()
+plt.savefig('plot.png')

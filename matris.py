@@ -408,8 +408,8 @@ class Matris(object):
                 self.lines += lines_cleared
                 
                 if not self.played_highscorebeaten_sound and self.score > self.highscore:
-                    if self.highscore != 0:
-                        self.highscorebeaten_sound.play()
+                    # if self.highscore != 0:
+                        # self.highscorebeaten_sound.play()
                     self.played_highscorebeaten_sound = True
 
             if self.lines >= self.level*5 and self.level < 30:

@@ -728,7 +728,7 @@ class Matris(object):
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
     
     def get_state(self):
-        return [self.bumpiness,self.holes,self.lines_cleared_last_move, self.deepest_well,self.height, self.num_pits, self.row_transisions, self.col_transisions, self.col_holes]
+        return [self.bumpiness,self.holes,self.lines_cleared_last_move, self.deepest_well,self.height, self.num_pits, self.row_transisions, self.col_transisions, self.col_holes,1]
 
 
 class Game(object):
@@ -990,7 +990,8 @@ class GameGA(Game):
                         for pos in range(pos_left,pos_right+1):
                             state = self.matris.place_block(pos,rot,False,tet)
                             if state:
-                                scores.append((np.sum(state*user)))
+                                score = self.predict(state, user)
+                                scores.append(score)
                                 positions.append(pos)
                                 rotations.append(rot)
                                 tetromino.append(tet)
@@ -1013,11 +1014,20 @@ class GameGA(Game):
             except GameOver:
                 return self.matris.get_score()
 
+    def predict(self,state,user):
+        score = 0
+        state = 0
+        output = []
+        for idx in range (0,9):
+            output.append(np.sum(state*user[idx*10:(idx*10)+10]))
+        score = np.sum(output*user[90:99])
+        return score
+
     def get_possible_pos(self, tetr):
         color = tetr.color
         # Z and S
         if color == 'red' or  color == 'green':
-            return  -4,5
+            return  -4, 5
         # 0
         if color == 'yellow':
             return -4, 5

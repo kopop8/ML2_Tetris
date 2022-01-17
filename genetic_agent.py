@@ -2,9 +2,11 @@ import numpy as np
 import ga
 import csv
 #Creating the initial population.
-num_weights = 9
-sol_per_pop = 4
-num_generations = 2
+num_weights = 99
+
+
+sol_per_pop = 100
+num_generations = 5
 num_parents_mating = int(sol_per_pop*0.2) # Was 0.2% of best performing get to next generation
 num_mutations = int(sol_per_pop*0.2)
 data = []

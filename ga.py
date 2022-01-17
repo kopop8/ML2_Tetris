@@ -16,7 +16,7 @@ def cal_pop_fitness(pop,  gen, num_gen):
     return fitness
 
 def run_child(user,info):
-    runs = 3
+    runs = 1
     fitness_child = []
     for i in  range(0,runs):
         matris.start_game()

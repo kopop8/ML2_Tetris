@@ -995,7 +995,6 @@ class GameGA(Game):
                                 positions.append(pos)
                                 rotations.append(rot)
                                 tetromino.append(tet)
-                # actually place
                 self.matris.current_tetromino = curr
                 self.matris.tetromino_position = (0, 4) if len(self.matris.current_tetromino.shape) == 2 else (0, 3)
                 max_value = max(scores)
@@ -1016,7 +1015,6 @@ class GameGA(Game):
 
     def predict(self,state,user):
         score = 0
-        state = 0
         output = []
         for idx in range (0,9):
             output.append(np.sum(state*user[idx*10:(idx*10)+10]))

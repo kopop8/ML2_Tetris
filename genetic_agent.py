@@ -1,12 +1,13 @@
-
 import numpy as np
 import ga
+import csv
 #Creating the initial population.
 num_weights = 9
-sol_per_pop = 20
-num_generations = 5
+sol_per_pop = 4
+num_generations = 2
 num_parents_mating = int(sol_per_pop*0.2) # Was 0.2% of best performing get to next generation
 num_mutations = int(sol_per_pop*0.2)
+data = []
 
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
@@ -25,6 +26,17 @@ for generation in range(num_generations):
     best_outputs.append(np.max(fitness))
     # The best result in the current iteration.
     print("Best result : {}, Average : {}".format( np.max(fitness),np.average(fitness)))
+
+    header = ['generation', 'score']
+    data.append([generation+1, np.max(fitness)])
+    with open('scores.csv', 'w', encoding='UTF8') as f:
+        writer = csv.writer(f)
+
+        writer.writerow(header)
+
+        for x in data:
+            # write the data
+            writer.writerow(x)
 
     best_match_idx = np.where(fitness == np.max(fitness))
 # print(new_population)
@@ -66,3 +78,4 @@ matplotlib.pyplot.plot(best_outputs)
 matplotlib.pyplot.xlabel("Iteration")
 matplotlib.pyplot.ylabel("Fitness")
 matplotlib.pyplot.show()
+matplotlib.pyplot.savefig('plot.png')

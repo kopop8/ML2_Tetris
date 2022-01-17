@@ -388,13 +388,25 @@ class Matris(object):
             self.matrix = blend
             lines_cleared = self.remove_lines()
             self.lines_cleared_last_move= lines_cleared
-            self.lines += lines_cleared
+
 
             if lines_cleared:
                 # if lines_cleared >= 4:
                     # self.linescleared_sound.play()
-                self.score += 100 * (lines_cleared**2) * self.combo
-
+                if lines_cleared == 1:
+                    self.score += 80 * (self.level + 1)
+                    lines_cleared = 1
+                elif lines_cleared == 2:
+                    self.score += 100 * (self.level + 1)
+                    lines_cleared = 3
+                elif lines_cleared == 3:
+                    self.score += 400 * (self.level + 1)
+                    lines_cleared = 5
+                if lines_cleared == 4:
+                    self.score += 1200 * (self.level + 1)
+                    lines_cleared = 10
+                self.lines += lines_cleared
+                
                 if not self.played_highscorebeaten_sound and self.score > self.highscore:
                     if self.highscore != 0:
                         self.highscorebeaten_sound.play()
@@ -403,8 +415,6 @@ class Matris(object):
             if self.lines >= self.level*5 and self.level < 30:
                 # self.levelup_sound.play()
                 self.level += 1
-
-            self.combo = self.combo + 1 if lines_cleared else 1
 
             self.set_tetrominoes()
 
@@ -436,9 +446,20 @@ class Matris(object):
             self.matrix = blend
             lines_cleared = self.remove_lines()
             if lines_cleared:
-                self.score_last = 100 * (lines_cleared**2) * self.combo
+                if lines_cleared == 1:
+                    self.score_last += 80 * (self.level + 1)
+                    lines_cleared = 1
+                elif lines_cleared == 2:
+                    self.score_last += 100 * (self.level + 1)
+                    lines_cleared = 3
+                elif lines_cleared == 3:
+                    self.score_last += 400 * (self.level + 1)
+                    lines_cleared = 5
+                if lines_cleared == 4:
+                    self.score_last += 1200 * (self.level + 1)
+                    lines_cleared = 10
             # Combo can be added again but its not official right now
-            self.combo_last = self.combo + 1 if lines_cleared else 1
+            # self.combo_last = self.combo + 1 if lines_cleared else 1
             # States
             column_heights = self.get_column_heights()
             self.num_pits = np.count_nonzero(column_heights==0)

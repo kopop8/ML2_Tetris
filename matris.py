@@ -400,7 +400,7 @@ class Matris(object):
                         self.highscorebeaten_sound.play()
                     self.played_highscorebeaten_sound = True
 
-            if self.lines >= self.level*5:
+            if self.lines >= self.level*5 and self.level < 30:
                 # self.levelup_sound.play()
                 self.level += 1
 

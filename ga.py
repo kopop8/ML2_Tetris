@@ -4,24 +4,24 @@ import matris
 
 
 
-def cal_pop_fitness(pop,  gen, num_gen):
+def cal_pop_fitness(pop,  gen, num_gen,max_lines_cleared= False):
     # Calculating the fitness value of each solution in the current population.
     # The fitness function calulates the sum of products between each input and its corresponding weight.
     # Every child should run multiple times
     fitness = []
     for idx, user in enumerate(pop):
         info = [gen+1,num_gen,idx+1, len(pop)]
-        avg_fitness = run_child(user, info)
+        avg_fitness = run_child(user, info,max_lines_cleared)
         fitness.append(avg_fitness)
     return fitness
 
-def run_child(user,info):
+def run_child(user,info,max_lines_cleared= False):
     runs = 1
     fitness_child = []
     for i in  range(0,runs):
         matris.start_game()
         info_child = info + [i+1, runs]
-        fitness_child.append(matris.start_round_GA(user, info_child))
+        fitness_child.append(matris.start_round_GA(user, info_child, max_lines_cleared))
     return np.average(fitness_child)
 
 

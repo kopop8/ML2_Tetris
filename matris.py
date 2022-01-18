@@ -954,7 +954,7 @@ def construct_nightmare(size):
 
 
 class GameGA(Game):
-    def main(self, user,info):
+    def main(self, user, info, max_lines_cleared = False):
         """
         Main loop for game
         Redraws scores and next tetromino each time the loop is passed through
@@ -974,7 +974,9 @@ class GameGA(Game):
 
         self.redraw()
         while True:
-            try:   
+            try:
+                if max_lines_cleared and max_lines_cleared <= self.matris.lines:
+                    return self.matris.get_score()
                 self.matris.update(9999999999999)
                 scores = []
                 positions = []
@@ -1115,8 +1117,8 @@ def start_round():
     Game().main()
 
 
-def start_round_GA(user,info):
-    return GameGA().main(user,info)
+def start_round_GA(user,info,max_lines_cleared = False):
+    return GameGA().main(user,info, max_lines_cleared)
   
 
 if __name__ == '__main__':

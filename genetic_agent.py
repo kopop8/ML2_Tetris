@@ -71,6 +71,26 @@ mutate_percentage = 0.5
 
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
+
+# with open('test.csv', "r") as f1:
+# 	array = f1.readlines()[-2]
+# 	x = array.split(",")
+# 	array = x[2]
+# 	x = array.split(" ")
+# 	data1 = []
+# 	for i in x:
+# 		data1.append(i.replace(']',''))
+# 	data = []
+# 	for i in data1:
+# 		try:
+# 			i = float(i)
+# 			if isinstance(float(i), float):
+# 				data.append(i)
+# 		except:
+# 			print(i + "is not a float")
+#
+#
+
 new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
 
 train_agent(num_generations, pop_size, new_population, num_parents_mating, num_mutations, mutate_percentage, max_lines_cleared)

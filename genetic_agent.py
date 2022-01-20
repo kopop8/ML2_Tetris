@@ -3,7 +3,7 @@ import ga
 import csv
 #Creating the initial population.
 num_weights = 9
-sol_per_pop = 4
+sol_per_pop = 5
 num_generations = 2
 num_parents_mating = int(sol_per_pop*0.2) # Was 0.2% of best performing get to next generation
 num_mutations = int(sol_per_pop*0.2)
@@ -27,20 +27,68 @@ for generation in range(num_generations):
     # The best result in the current iteration.
     print("Best result : {}, Average : {}".format( np.max(fitness),np.average(fitness)))
 
-    header = ['generation', 'score']
-    data.append([generation+1, np.max(fitness)])
-    with open('scores.csv', 'w', encoding='UTF8') as f:
-        writer = csv.writer(f)
 
-        writer.writerow(header)
 
-        for x in data:
-            # write the data
-            writer.writerow(x)
 
     best_match_idx = np.where(fitness == np.max(fitness))
-# print(new_population)
     print("Best solution : ", new_population[best_match_idx, :])
+    print(new_population[best_match_idx, :])
+
+    try:
+        with open('scores.csv', 'r') as f:
+            csv_reader = csv.reader(f)
+            for line in csv_reader:
+                if line != '':
+                    data.append(line)
+        data.append([generation + 1, np.max(fitness), new_population[best_match_idx, :]])
+        list2 = [x for x in data if x != []]
+        with open('scores.csv', 'w', encoding='UTF8') as f:
+            writer = csv.writer(f)
+
+            for x in list2:
+                # write the data
+                writer.writerow(x)
+    except:
+        print("File does not exist, so create file with ")
+        header = ['generation', 'score', 'weights']
+        data.append([generation + 1, np.max(fitness), new_population[best_match_idx, :]])
+        list2 = [x for x in data if x != []]
+
+        with open('scores.csv', 'w', encoding='UTF8') as f:
+            writer = csv.writer(f)
+
+            writer.writerow(header)
+
+            for x in list2:
+                # write the data
+                writer.writerow(x)
+
+    # try:
+    #     with open('scores.csv', 'r') as f:
+    #         csv_reader = csv.reader(f)
+    #         for line in csv_reader:
+    #             data.append(line)
+    #     data.append([generation + 1, np.max(fitness), new_population[best_match_idx, :]])
+    #     with open('scores.csv', 'w', encoding='UTF8') as f:
+    #         writer = csv.writer(f)
+    #
+    #
+    #         for x in data:
+    #             # write the data
+    #             writer.writerow(x)
+    # except:
+    #     print("File does not exist, so create file with ")
+    # else:
+    #     header = ['generation', 'score', 'weights']
+    #     data.append([generation + 1, np.max(fitness), new_population[best_match_idx, :]])
+    #     with open('scores.csv', 'w', encoding='UTF8') as f:
+    #         writer = csv.writer(f)
+    #
+    #         writer.writerow(header)
+    #
+    #         for x in data:
+    #             # write the data
+    #             writer.writerow(x)
     
     # Selecting the best parents in the population for mating.
     parents = ga.select_mating_pool(new_population, fitness, 

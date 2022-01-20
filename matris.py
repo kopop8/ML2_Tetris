@@ -977,7 +977,7 @@ class GameGA(Game):
             try:
                 if max_lines_cleared and max_lines_cleared <= self.matris.lines:
                     return self.matris.get_score()
-                self.matris.update(9999999999999)
+                self.matris.update(1)
                 scores = []
                 positions = []
                 rotations = []

@@ -125,5 +125,6 @@ import matplotlib.pyplot
 matplotlib.pyplot.plot(best_outputs)
 matplotlib.pyplot.xlabel("Iteration")
 matplotlib.pyplot.ylabel("Fitness")
-matplotlib.pyplot.show()
 matplotlib.pyplot.savefig('plot.png')
+matplotlib.pyplot.show()
+

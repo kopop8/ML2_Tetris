@@ -57,7 +57,7 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
         
     # Getting the best solution after iterating finishing all generations.
     #At first, the fitness is calculated for each solution in the final generation.
-    fitness = ga.cal_pop_fitness(new_population,-1,0)
+    fitness = ga.cal_pop_fitness(new_population,-1,0,max_lines_cleared)
     # Then return the index of that solution corresponding to the best fitness.
     best_match_idx = np.where(fitness == np.max(fitness))
     # print(new_population)

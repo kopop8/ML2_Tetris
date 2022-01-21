@@ -29,8 +29,6 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
         print("Best solution : ", new_population[best_match_idx, :])
         #data.append([generation + 1, np.max(fitness), new_population[best_match_idx, :]])
         data.append(new_population)
-        # df = pd.DataFrame(data, columns=["generation", "fitness", "population"])
-        # df.to_csv('myfile.csv')
         output = open('data.pkl', 'wb')
         pickle.dump(data, output)
         output.close()
@@ -64,22 +62,24 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
 
 
 #Creating the initial population.
-num_weights = 99
+num_weights = 9
+hidden_layers = 1
+total_weights = ((num_weights+1)*9)*hidden_layers+ 9
 max_lines_cleared = 100
 sol_per_pop = 100
 num_generations = 5
-num_parents_mating = int(sol_per_pop*0.1)
-num_mutations = int(sol_per_pop*0.1)
+num_parents_mating = int(sol_per_pop*0.2)
+num_mutations = int(sol_per_pop*0.2)
 mutate_percentage = 0.5
 
 # Defining the population size.
-pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
+pop_size = (sol_per_pop,total_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
 
 def GET_best_weights():
     pkl_file = open('data.pkl', 'rb')
-    data1 = pickle.load(pkl_file)[-1]
+    data = pickle.load(pkl_file)[-1]
     pkl_file.close()
-    return data1
+    return data
 
 try:
     new_population = GET_best_weights()

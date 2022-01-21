@@ -76,13 +76,11 @@ mutate_percentage = 0.5
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
 
 def GET_best_weights():
-    # data = pd.read_csv('myfile.csv').to_numpy()
-    # return np.fromstring(data[-1][3])
     pkl_file = open('data.pkl', 'rb')
     data1 = pickle.load(pkl_file)[-1]
     pkl_file.close()
     return data1
-    
+
 try:
     new_population = GET_best_weights()
 except:                                                  

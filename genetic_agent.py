@@ -33,10 +33,11 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
         pickle.dump(data, output)
         output.close()
 
-        
+       
         # Selecting the best parents in the population for mating.
         parents = ga.select_mating_pool(new_population, fitness, 
                                         num_parents_mating)
+        print((pop_size[0]-parents.shape[0], num_weights))
         # Generating next generation using crossover.
         offspring_crossover = ga.crossover(parents,
                                         offspring_size=(pop_size[0]-parents.shape[0], num_weights))
@@ -62,9 +63,9 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
 
 
 #Creating the initial population.
-num_weights = 9
+states = 9
 hidden_layers = 1
-total_weights = ((num_weights+1)*9)*hidden_layers+ 9
+num_weights = ((states+1)*9)*hidden_layers+ 9
 max_lines_cleared = 100
 sol_per_pop = 100
 num_generations = 5
@@ -73,7 +74,7 @@ num_mutations = int(sol_per_pop*0.2)
 mutate_percentage = 0.5
 
 # Defining the population size.
-pop_size = (sol_per_pop,total_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
+pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
 
 def GET_best_weights():
     pkl_file = open('data.pkl', 'rb')
@@ -85,5 +86,6 @@ try:
     new_population = GET_best_weights()
 except:                                                  
     new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
+    
 print(new_population)
 train_agent(num_generations, pop_size, new_population, num_parents_mating, num_mutations, mutate_percentage, max_lines_cleared)

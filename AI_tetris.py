@@ -2,8 +2,6 @@ import matris
 import numpy as np
 import csv
 matris.start_game()
-
-
 # with open('test.csv', "r") as f1:
 # 	array = f1.readlines()[-2]
 # 	x = array.split(",")

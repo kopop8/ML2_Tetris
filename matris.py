@@ -954,7 +954,7 @@ def construct_nightmare(size):
 
 
 class GameGA(Game):
-    def main(self, user,info):
+    def main(self, user, info, max_lines_cleared = False):
         """
         Main loop for game
         Redraws scores and next tetromino each time the loop is passed through
@@ -974,8 +974,10 @@ class GameGA(Game):
 
         self.redraw()
         while True:
-            try:   
-                self.matris.update(9999999999999)
+            try:
+                if max_lines_cleared and max_lines_cleared <= self.matris.lines:
+                    return self.matris.get_score()
+                self.matris.update(1)
                 scores = []
                 positions = []
                 rotations = []
@@ -990,11 +992,11 @@ class GameGA(Game):
                         for pos in range(pos_left,pos_right+1):
                             state = self.matris.place_block(pos,rot,False,tet)
                             if state:
-                                scores.append((np.sum(state*user)))
+                                score = self.predict(state, user)
+                                scores.append(score)
                                 positions.append(pos)
                                 rotations.append(rot)
                                 tetromino.append(tet)
-                # actually place
                 self.matris.current_tetromino = curr
                 self.matris.tetromino_position = (0, 4) if len(self.matris.current_tetromino.shape) == 2 else (0, 3)
                 max_value = max(scores)
@@ -1013,11 +1015,25 @@ class GameGA(Game):
             except GameOver:
                 return self.matris.get_score()
 
+    def predict(self,state,user):
+        score = 0
+        output = []
+        if len(user)>len(state):
+            # Add bias if not single layered
+            state.append(1)
+            for idx in range (0,9):
+                output.append(np.sum(state*user[idx*10:(idx*10)+10]))
+            score = np.sum(output*user[90:100])
+        else:
+            # Single layer predict it simple
+            score = np.sum(state*user)
+        return score
+
     def get_possible_pos(self, tetr):
         color = tetr.color
         # Z and S
         if color == 'red' or  color == 'green':
-            return  -4,5
+            return  -4, 5
         # 0
         if color == 'yellow':
             return -4, 5
@@ -1107,8 +1123,8 @@ def start_round():
     Game().main()
 
 
-def start_round_GA(user,info):
-    return GameGA().main(user,info)
+def start_round_GA(user,info,max_lines_cleared = False):
+    return GameGA().main(user,info, max_lines_cleared)
   
 
 if __name__ == '__main__':

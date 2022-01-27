@@ -6,7 +6,6 @@ import pandas as pd
 from numpy import average, savetxt
 from numpy import loadtxt
 import pickle
-
 def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_population, num_parents_mating, num_mutations,mutate_percentage, isMultilayer, max_lines_cleared=False):
     print("Beginning training")
     best_outputs = []
@@ -21,7 +20,6 @@ def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_
         best_outputs.append(np.max(fitness))
         # The best result in the current iteration.
         print("Best result : {}, Average : {}".format( np.max(fitness),np.average(fitness)))
-
 
 
         best_match_idx = np.where(fitness == np.max(fitness))
@@ -105,5 +103,5 @@ if useSave:
     new_population = GET_best_weights(isMultilayer)
 else:
     new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
-
 train_agent(current_generation,num_generations, sol_per_pop, pop_size, new_population, num_parents_mating, num_mutations, mutate_percentage, isMultilayer, max_lines_cleared)
+

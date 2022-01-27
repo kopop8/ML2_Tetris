@@ -728,7 +728,7 @@ class Matris(object):
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
     
     def get_state(self):
-        return [self.bumpiness,self.holes,self.lines_cleared_last_move, self.deepest_well,self.height, self.num_pits, self.row_transisions, self.col_transisions, self.col_holes,1]
+        return [self.bumpiness,self.holes,self.lines_cleared_last_move, self.deepest_well,self.height, self.num_pits, self.row_transisions, self.col_transisions, self.col_holes]
 
 
 class Game(object):
@@ -1018,9 +1018,15 @@ class GameGA(Game):
     def predict(self,state,user):
         score = 0
         output = []
-        for idx in range (0,9):
-            output.append(np.sum(state*user[idx*10:(idx*10)+10]))
-        score = np.sum(output*user[90:99])
+        if len(user)>len(state):
+            # Add bias if not single layered
+            state.append(1)
+            for idx in range (0,9):
+                output.append(np.sum(state*user[idx*10:(idx*10)+10]))
+            score = np.sum(output*user[90:100])
+        else:
+            # Single layer predict it simple
+            score = np.sum(state*user)
         return score
 
     def get_possible_pos(self, tetr):

@@ -3,15 +3,15 @@ import ga
 import csv
 import matplotlib.pyplot as plt
 import pandas as pd
-from numpy import savetxt
+from numpy import average, savetxt
 from numpy import loadtxt
 import pickle
 
-def train_agent(num_generations, pop_size, new_population, num_parents_mating, num_mutations,mutate_percentage, max_lines_cleared=False):
+def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_population, num_parents_mating, num_mutations,mutate_percentage, isMultilayer, max_lines_cleared=False):
     print("Beginning training")
     best_outputs = []
     data = []
-    for generation in range(num_generations):
+    for generation in range(current_generation,num_generations+num_generations):
         print("Generation : ", generation+1)
         # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
         fitness = ga.cal_pop_fitness(new_population,generation, num_generations, max_lines_cleared)
@@ -28,8 +28,11 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
     # print(new_population)
         print("Best solution : ", new_population[best_match_idx, :])
         #data.append([generation + 1, np.max(fitness), new_population[best_match_idx, :]])
-        data.append(new_population)
-        output = open('data.pkl', 'wb')
+        data.append([generation,np.max(fitness),np.average(fitness),new_population])
+        if isMultilayer:
+            output = open('data-multi-{}.pkl'.format(sol_per_pop), 'wb')
+        else:
+            output = open('data-single-{}.pkl'.format(sol_per_pop), 'wb')
         pickle.dump(data, output)
         output.close()
 
@@ -62,30 +65,45 @@ def train_agent(num_generations, pop_size, new_population, num_parents_mating, n
     plt.show()
 
 
+# User Options
+isMultilayer = False
+useSave = True
+
 #Creating the initial population.
-states = 9
-hidden_layers = 1
-num_weights = ((states+1)*9)*hidden_layers+ 9
-max_lines_cleared = 100
+if isMultilayer:
+    states = 9
+    hidden_layers = 1
+    num_weights = ((states+1)*9)*hidden_layers+ 9
+else :
+    num_weights = 9
+# Game and Agent Options    
+max_lines_cleared = 1
 sol_per_pop = 100
 num_generations = 5
 num_parents_mating = int(sol_per_pop*0.2)
 num_mutations = int(sol_per_pop*0.2)
-mutate_percentage = 0.5
-
+mutate_percentage = 0.1
+current_generation = 0
 # Defining the population size.
 pop_size = (sol_per_pop,num_weights) # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
 
-def GET_best_weights():
-    pkl_file = open('data.pkl', 'rb')
+def GET_best_weights(isMultilayer):
+    if isMultilayer:
+        pkl_file = open('data-multi-{}.pkl'.format(sol_per_pop), 'rb')
+    else:
+        pkl_file = open('data-single-{}.pkl'.format(sol_per_pop), 'rb')
     data = pickle.load(pkl_file)[-1]
     pkl_file.close()
+    current_generation = data[0]
+    max_fit = data[1]
+    avg_fit = data[2]
+    data = data[3]
+    print('Generation: {}, Max fitness:{}, Average fitness: {}, number of mutations: {}'.format(current_generation+1, max_fit,avg_fit,len(data)))
     return data
 
-try:
-    new_population = GET_best_weights()
-except:                                                  
+if useSave:
+    new_population = GET_best_weights(isMultilayer)
+else:
     new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
-    
-print(new_population)
-train_agent(num_generations, pop_size, new_population, num_parents_mating, num_mutations, mutate_percentage, max_lines_cleared)
+
+train_agent(current_generation,num_generations, sol_per_pop, pop_size, new_population, num_parents_mating, num_mutations, mutate_percentage, isMultilayer, max_lines_cleared)

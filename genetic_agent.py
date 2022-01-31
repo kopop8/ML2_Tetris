@@ -6,11 +6,15 @@ import pandas as pd
 from numpy import average, savetxt
 from numpy import loadtxt
 import pickle
+import pandas as pd 
+
+
 def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_population, num_parents_mating, num_mutations,mutate_percentage, isMultilayer, max_lines_cleared=False):
+    df = pd.DataFrame(columns=['generation', 'max_fitness', 'avg_fitness', 'max_lines_cleared', 'pop_size'])
     print("Beginning training")
     best_outputs = []
     data = []
-    for generation in range(current_generation,num_generations+num_generations):
+    for generation in range(current_generation, num_generations+num_generations):
         print("Generation : ", generation+1)
         # Measuring the fitness of each chromosome in the population. TODO hier moet vgm elke ding in de population dus die game spelen en de fitness returnen
         fitness = ga.cal_pop_fitness(new_population,generation, num_generations, max_lines_cleared)
@@ -48,7 +52,10 @@ def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_
         # Creating the new population based on the parents and offspring.
         new_population[0:parents.shape[0], :] = parents
         new_population[parents.shape[0]:, :] = offspring_mutation
-        
+
+        df.loc[generation] = [generation, np.max(fitness), np.average(fitness), max_lines_cleared, pop_size]
+        df.to_csv('./saved_data.csv')
+    
     # Getting the best solution after iterating finishing all generations.
     #At first, the fitness is calculated for each solution in the final generation.
     fitness = ga.cal_pop_fitness(new_population,-1,0,max_lines_cleared)
@@ -65,7 +72,7 @@ def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_
 
 # User Options
 isMultilayer = False
-useSave = True
+useSave = False
 
 #Creating the initial population.
 if isMultilayer:
@@ -75,9 +82,9 @@ if isMultilayer:
 else :
     num_weights = 9
 # Game and Agent Options    
-max_lines_cleared = 1
-sol_per_pop = 100
-num_generations = 5
+max_lines_cleared = 30
+sol_per_pop = 5
+num_generations = 2
 num_parents_mating = int(sol_per_pop*0.2)
 num_mutations = int(sol_per_pop*0.2)
 mutate_percentage = 0.1
@@ -103,5 +110,6 @@ if useSave:
     new_population = GET_best_weights(isMultilayer)
 else:
     new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
+
 train_agent(current_generation,num_generations, sol_per_pop, pop_size, new_population, num_parents_mating, num_mutations, mutate_percentage, isMultilayer, max_lines_cleared)
 

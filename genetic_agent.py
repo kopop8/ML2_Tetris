@@ -63,7 +63,7 @@ def train_agent(current_generation,num_generations,sol_per_pop ,  pop_size, new_
 
 # User Options
 isMultilayer = True
-useSave = True  
+useSave = False  
 
 #Creating the initial population.
 if isMultilayer:         
@@ -73,11 +73,11 @@ if isMultilayer:
 else :
     num_weights = 9
 # Game and Agent Options    
-max_lines_cleared = 1
-sol_per_pop = 2
+max_lines_cleared = 30
+sol_per_pop = 50
 num_generations = 5
-num_parents_mating = 2
-num_mutations = 2
+num_parents_mating = int(sol_per_pop*0.2)
+num_mutations = int(sol_per_pop*0.2)
 mutate_percentage = 0.1
 current_generation = 0
 total_data = []
